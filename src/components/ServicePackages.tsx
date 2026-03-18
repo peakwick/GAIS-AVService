@@ -55,7 +55,7 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
         <p className="text-gray-500 mt-1">Projenizin ölçeğine ve envanterinize uygun bakım ve destek paketini seçin.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {(adminSettings.servicePackages || []).map((pkg) => {
           const costs = calculatePackageCost(config, adminSettings, pkg.id);
           const isSelected = config.servicePackage === pkg.id;
@@ -92,6 +92,11 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
 
               <div className="flex items-center justify-between text-sm mb-4 bg-white/50 rounded-lg p-2 border border-gray-100">
                 <div className="text-center px-2">
+                  <span className="block text-lg font-bold text-gray-900">{roomCount}</span>
+                  <span className="text-xs text-gray-500">Oda<br/>Sayısı</span>
+                </div>
+                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="text-center px-2">
                   <span className="block text-lg font-bold text-gray-900">{pkg.incidentVisits || 0}</span>
                   <span className="text-xs text-gray-500">Arıza<br/>Müdahale</span>
                 </div>
@@ -107,31 +112,7 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                 </div>
               </div>
 
-              {/* Inventory Details Inside Package */}
-              <div className="mb-6 pb-6 border-b border-gray-100">
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Proje Envanteri</h4>
-                <div className="flex space-x-4 mb-3 text-sm">
-                  <div><span className="text-gray-500">Oda:</span> <span className="font-medium">{roomCount}</span></div>
-                  <div><span className="text-gray-500">Ekipman:</span> <span className="font-medium">{config.locations.reduce((acc, loc) => acc + loc.rooms.reduce((s, r) => s + r.equipment.reduce((eqSum, e) => eqSum + e.quantity, 0), 0), 0)}</span></div>
-                </div>
-                <div className="space-y-2">
-                  <h5 className="text-xs font-medium text-gray-700">İşçilik Detayları</h5>
-                  <div className="space-y-2">
-                    {Array.from(new Set(config.locations.flatMap(loc => loc.rooms.flatMap(r => r.equipment.map(e => e.catalogId))))).map(catalogId => {
-                      const item = adminSettings.catalog?.find(c => c.id === catalogId);
-                      if (!item) return null;
-                      return (
-                        <div key={catalogId} className="bg-gray-50 p-2 rounded border border-gray-100 text-xs">
-                          <span className="font-medium text-gray-900 block">{item.name}</span>
-                          <span className="text-gray-600">{item.description || 'Açıklama girilmemiş.'}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 mb-6">
+              <div className="space-y-2 mb-6 pb-6 border-b border-gray-100">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">Hizmetler</h4>
                 {(pkg.includedServices || []).map((serviceId, i) => {
                   const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
@@ -157,6 +138,36 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                     </div>
                   );
                 })}
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Ekipman Bakım Kapsamı</h4>
+                <div className="space-y-3">
+                  {Object.entries(
+                    config.locations.reduce((acc, loc) => {
+                      loc.rooms.forEach(room => {
+                        room.equipment.forEach(eq => {
+                          acc[eq.catalogId] = (acc[eq.catalogId] || 0) + eq.quantity;
+                        });
+                      });
+                      return acc;
+                    }, {} as Record<string, number>)
+                  ).map(([catalogId, count]) => {
+                    const item = adminSettings.catalog?.find(c => c.id === catalogId);
+                    if (!item) return null;
+                    return (
+                      <div key={catalogId} className="flex items-start space-x-2 text-sm">
+                        <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 mt-2 shrink-0"></div>
+                        <div className="text-gray-700">
+                          <span className="font-medium">{count} Adet {item.name.split(' / ')[0]}</span>
+                          {item.description && (
+                            <span className="block text-xs text-gray-500 mt-0.5">{item.description}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {warning && (
@@ -209,23 +220,6 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
             </div>
           );
         })}
-      </div>
-
-      {/* Billing Cycle */}
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mt-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Ödeme Planı</h3>
-        <div className="max-w-xs">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Fatura Dönemi</label>
-          <select
-            value={config.billingCycle}
-            onChange={(e) => updateField('billingCycle', e.target.value)}
-            className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
-          >
-            {BILLING_CYCLES.map(cycle => (
-              <option key={cycle} value={cycle}>{cycle}</option>
-            ))}
-          </select>
-        </div>
       </div>
     </div>
   );

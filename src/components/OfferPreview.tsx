@@ -67,7 +67,7 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Hizmet Kapsamı</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Odalar</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Oda Sayısı</p>
               <p className="text-2xl font-light text-gray-900">
                 {config.locations.reduce((sum, loc) => sum + loc.rooms.length, 0)}
               </p>

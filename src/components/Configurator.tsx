@@ -1,6 +1,6 @@
 import React from 'react';
 import { ConfigState, Room, Equipment, AdminSettings, ProjectLocation } from '../types';
-import { LOCATIONS } from '../constants';
+import { LOCATIONS, BILLING_CYCLES } from '../constants';
 import { Plus, Trash2, Monitor, Mic, Video, Settings, Speaker, Box, Wrench, MapPin } from 'lucide-react';
 
 interface ConfiguratorProps {
@@ -169,6 +169,18 @@ export function Configurator({ config, adminSettings, onChange }: ConfiguratorPr
                   placeholder="örn. Merkez Ofis AV Bakım"
                   className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fatura Dönemi</label>
+                <select
+                  value={config.billingCycle}
+                  onChange={(e) => updateField('billingCycle', e.target.value)}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                >
+                  {BILLING_CYCLES.map(cycle => (
+                    <option key={cycle} value={cycle}>{cycle}</option>
+                  ))}
+                </select>
               </div>
             </div>
           </div>
