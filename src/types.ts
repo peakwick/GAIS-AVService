@@ -1,0 +1,76 @@
+export type Location = 'İstanbul' | 'Ankara' | 'İzmir' | 'Diğer';
+export type BillingCycle = 'Aylık' | 'Üç Aylık' | 'Yıllık';
+export type EquipmentType = 'Screen' | 'VideoConferencing' | 'CeilingMic' | 'AudioDSP' | 'ControlSystem' | 'Other';
+export type ServicePackage = string; // Now dynamic, 'custom' is reserved
+
+export interface ServicePackageDef {
+  id: string;
+  label: string;
+  incidentVisits: number;
+  proactiveVisits: number;
+  desc: string;
+  maxRooms?: number;
+  includedServices?: string[];
+  excludedServices?: string[];
+}
+
+export type CostType = 'free' | 'hourly' | 'monthly' | 'annual' | 'per_unit';
+
+export interface CatalogItem {
+  id: string;
+  type: 'equipment' | 'service';
+  name: string;
+  description: string;
+  costType: CostType;
+  costValue: number; // Hours if hourly, Currency if monthly/annual/per_unit
+  unitCount?: number; // For per_unit cost type
+  icon?: string;
+  isDefaultRoomEquipment?: boolean; // If true, added automatically to new rooms
+}
+
+export interface Equipment {
+  id: string;
+  catalogId: string;
+  quantity: number;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  equipment: Equipment[];
+}
+
+export interface ProjectLocation {
+  id: string;
+  name: string;
+  city: Location;
+  rooms: Room[];
+}
+
+export interface ConfigState {
+  clientName: string;
+  projectName: string;
+  locations: ProjectLocation[];
+  servicePackage: ServicePackage;
+  incidentVisitsPerYear: number;
+  proactiveVisitsPerYear: number;
+  billingCycle: BillingCycle;
+  customConditions: string;
+}
+
+export interface AdminSettings {
+  techMonthlySalary: number;
+  techMonthlyOverhead: number;
+  workingDaysPerMonth: number;
+  basePreventativeVisitHours: number;
+  remoteSupportBaseHours: number;
+  remoteSupportHoursPerRoom: number;
+  fuelCostPerVisit: number;
+  parkingCostPerVisit: number;
+  locationMultiplier: Record<Location, number>;
+  markupPercentage: number;
+  servicePackages: ServicePackageDef[];
+  catalog: CatalogItem[];
+  usdExchangeRate: number;
+  currency: 'TRY' | 'USD';
+}

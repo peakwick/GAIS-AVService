@@ -1,0 +1,5 @@
+{
+  "name": "AV Service Configurator",
+  "description": "Configure and price audio-video service and maintenance packages for clients.",
+  "requestFramePermissions": []
+}
