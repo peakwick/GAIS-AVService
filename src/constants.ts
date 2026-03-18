@@ -37,7 +37,18 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     'İzmir': 1.1,
     'Diğer': 1.5,
   },
+  billingCycleMultiplier: {
+    'Aylık': 1.1,
+    'Üç Aylık': 1.05,
+    'Yıllık': 1.0,
+  },
+  scaleDiscountThreshold: 5,
+  scaleDiscountRatePerRoom: 2,
+  scaleMaxDiscount: 20,
   markupPercentage: 40,
+  adhocCalculationMethod: 'markup',
+  adhocMarkupPercentage: 100,
+  fixedPerCallPrice: 500,
   catalog: DEFAULT_CATALOG,
   usdExchangeRate: 35.0,
   currency: 'TRY',
@@ -86,4 +97,4 @@ export const DEFAULT_CONFIG_STATE: ConfigState = {
 };
 
 export const LOCATIONS = ['İstanbul', 'Ankara', 'İzmir', 'Diğer'] as const;
-export const BILLING_CYCLES = ['Aylık', 'Üç Aylık', 'Yıllık'] as const;
+export const BILLING_CYCLES = ['Yıllık', 'Üç Aylık', 'Aylık'] as const;

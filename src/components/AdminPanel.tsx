@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AdminSettings, ServicePackageDef, CatalogItem, CostType } from '../types';
-import { LOCATIONS } from '../constants';
+import { LOCATIONS, BILLING_CYCLES } from '../constants';
 import { Settings, Users, Clock, MapPin, Percent, Package, Plus, Trash2, List, Monitor, Mic, Video, Speaker, Box, Wrench } from 'lucide-react';
 
 interface AdminPanelProps {
@@ -15,7 +15,7 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
     onChange({ ...settings, [field]: value });
   };
 
-  const handleNestedChange = (parent: 'locationMultiplier', key: string, value: number) => {
+  const handleNestedChange = (parent: 'locationMultiplier' | 'billingCycleMultiplier', key: string, value: number) => {
     onChange({
       ...settings,
       [parent]: {
@@ -472,6 +472,156 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
         </div>
         )}
 
+        {/* Personnel Costs */}
+        {activeTab === 'costs' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <Users className="w-5 h-5 mr-2 text-indigo-500" />
+            Personel Giderleri
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Teknik ekibin saatlik maliyetini hesaplamak için aylık giderleri girin.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Maaş / Uzman</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                <input
+                  type="number"
+                  value={settings.techMonthlySalary || 0}
+                  onChange={(e) => handleChange('techMonthlySalary', Number(e.target.value))}
+                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Yan Haklar vb.</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                <input
+                  type="number"
+                  value={settings.techMonthlyOverhead || 0}
+                  onChange={(e) => handleChange('techMonthlyOverhead', Number(e.target.value))}
+                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Çalışılan Gün / Ay</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={settings.workingDaysPerMonth || 22}
+                  onChange={(e) => handleChange('workingDaysPerMonth', Number(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">Gün</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-center">
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wider font-semibold">Saatlik Maliyet</span>
+              <span className="font-bold text-indigo-700 text-lg">₺{hourlyRate.toFixed(2)}</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wider font-semibold">Yarım Gün (4 sa)</span>
+              <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 4).toFixed(2)}</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wider font-semibold">Günlük Maliyet (8 sa)</span>
+              <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 8).toFixed(2)}</span>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Currency and Margin */}
+        {activeTab === 'costs' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2 mb-8">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <Percent className="w-5 h-5 mr-2 text-indigo-500" />
+            Döviz Kuru ve Kar Marjı
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Fiyatlandırmada kullanılacak güncel dolar kurunu ve eklenecek kar marjını belirleyin.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Dolar Kuru (USD/TRY)</label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={settings.usdExchangeRate || 0}
+                  onChange={(e) => handleChange('usdExchangeRate', Number(e.target.value))}
+                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Anlaşmalı Kar Marjı (%)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={settings.markupPercentage || 0}
+                  onChange={(e) => handleChange('markupPercentage', Number(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+              </div>
+            </div>
+            
+            <div className="sm:col-span-2 pt-4 border-t border-gray-100">
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Anlaşmasız (Per Call) Fiyatlandırma</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hesaplama Yöntemi</label>
+                  <select
+                    value={settings.adhocCalculationMethod || 'markup'}
+                    onChange={(e) => handleChange('adhocCalculationMethod', e.target.value)}
+                    className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                  >
+                    <option value="markup">Yüksek Kar Marjı (% İle)</option>
+                    <option value="fixed_visit">Sabit Servis Ücreti (Ziyaret Başı)</option>
+                  </select>
+                </div>
+
+                {(!settings.adhocCalculationMethod || settings.adhocCalculationMethod === 'markup') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Anlaşmasız Kar Marjı (%)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={settings.adhocMarkupPercentage !== undefined ? settings.adhocMarkupPercentage : 100}
+                        onChange={(e) => handleChange('adhocMarkupPercentage', Number(e.target.value))}
+                        className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+                    </div>
+                  </div>
+                )}
+
+                {settings.adhocCalculationMethod === 'fixed_visit' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Sabit Ziyaret Ücreti Değeri</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={settings.fixedPerCallPrice || 0}
+                        onChange={(e) => handleChange('fixedPerCallPrice', Number(e.target.value))}
+                        className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
         {/* Logistics Costs */}
         {activeTab === 'costs' && (
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
@@ -506,6 +656,122 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
                 />
               </div>
             </div>
+          </div>
+        </div>
+        )}
+
+        {/* Economies of Scale */}
+        {activeTab === 'costs' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <Percent className="w-5 h-5 mr-2 text-indigo-500" />
+            Ölçek Ekonomisi (Grup İndirimi)
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Aynı lokasyonda (binada) çok sayıda oda olması durumunda işçilikten (ekipman bakım sürelerinden) kazanılacak verimliliği yansıtan ardışık indirimleri belirleyin.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">İndirim Başlangıcı (Oda Sayısı)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  value={settings.scaleDiscountThreshold ?? 5}
+                  onChange={(e) => handleChange('scaleDiscountThreshold', Number(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+              </div>
+              <p className="text-[10px] text-gray-500 mt-1">Bu sayının üzerindeki HER ekstra oda için indirim uygulanır.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Ekstra Oda Başına İndirim (%)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="50"
+                  value={settings.scaleDiscountRatePerRoom ?? 2}
+                  onChange={(e) => handleChange('scaleDiscountRatePerRoom', Number(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Maksimum İndirim Sınırı (%)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="0"
+                  max="90"
+                  value={settings.scaleMaxDiscount ?? 20}
+                  onChange={(e) => handleChange('scaleMaxDiscount', Number(e.target.value))}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                />
+                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        )}
+
+        {/* Billing Cycle Multipliers */}
+        {activeTab === 'costs' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <Clock className="w-5 h-5 mr-2 text-indigo-500" />
+            Ödeme Planı Çarpanları
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Müşterinin seçtiği fatura dönemine göre (Aylık, Yıllık vb.) toplam fiyata uygulanacak çarpanı belirleyin. Peşin ödemelere avantaj sağlamak veya vadeli ödemelere vade farkı eklemek için kullanabilirsiniz.</p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {BILLING_CYCLES.map(cycle => (
+              <div key={cycle}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{cycle}</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.5"
+                    value={settings.billingCycleMultiplier?.[cycle] || 1.0}
+                    onChange={(e) => handleNestedChange('billingCycleMultiplier', cycle, Number(e.target.value))}
+                    className="w-full rounded-lg border-gray-300 border p-2 pr-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  />
+                  <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 text-sm">x</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+        )}
+
+        {/* Location Multipliers */}
+        {activeTab === 'costs' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 md:col-span-2">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
+            Konum Çarpanları
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">Farklı şehirler için operasyon zorluğu ve seyahat maliyeti çarpanı belirleyin. Saha ziyaret maliyetleri bu katsayı ile çarpılır.</p>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+            {LOCATIONS.map(loc => (
+              <div key={loc}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{loc}</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="1"
+                    value={settings.locationMultiplier?.[loc] || 1}
+                    onChange={(e) => handleNestedChange('locationMultiplier', loc, Number(e.target.value))}
+                    className="w-full rounded-lg border-gray-300 border p-2 pr-12 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                  />
+                  <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 text-sm">x</span>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         )}

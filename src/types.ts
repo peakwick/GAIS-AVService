@@ -58,6 +58,20 @@ export interface ConfigState {
   customConditions: string;
 }
 
+export interface CalculatedCosts {
+  hourlyRate: number;
+  totalAnnualHours: number;
+  annualBaseCost: number;
+  annualPrice: number;
+  periodicPrice: number;
+  adhocAnnualPrice: number;
+  breakdown: {
+    equipmentHours: number;
+    scaleDiscountHours?: number;
+    visitHours: number;
+  };
+}
+
 export interface AdminSettings {
   techMonthlySalary: number;
   techMonthlyOverhead: number;
@@ -68,7 +82,14 @@ export interface AdminSettings {
   fuelCostPerVisit: number;
   parkingCostPerVisit: number;
   locationMultiplier: Record<Location, number>;
+  billingCycleMultiplier: Record<BillingCycle, number>;
+  scaleDiscountThreshold: number;
+  scaleDiscountRatePerRoom: number;
+  scaleMaxDiscount: number;
   markupPercentage: number;
+  adhocCalculationMethod?: 'markup' | 'fixed_visit';
+  adhocMarkupPercentage: number;
+  fixedPerCallPrice?: number;
   servicePackages: ServicePackageDef[];
   catalog: CatalogItem[];
   usdExchangeRate: number;

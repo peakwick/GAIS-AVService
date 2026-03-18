@@ -112,35 +112,7 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                 </div>
               </div>
 
-              <div className="space-y-2 mb-6 pb-6 border-b border-gray-100">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Hizmetler</h4>
-                {(pkg.includedServices || []).map((serviceId, i) => {
-                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
-                  return (
-                    <div key={`inc-${i}`} className="flex items-start space-x-2 text-sm">
-                      <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                      <span className="text-gray-700">
-                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                      </span>
-                    </div>
-                  );
-                })}
-                {(pkg.excludedServices || []).map((serviceId, i) => {
-                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
-                  return (
-                    <div key={`exc-${i}`} className="flex items-start space-x-2 text-sm">
-                      <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-                      <span className="text-gray-500 line-through">
-                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-6 pb-6 border-b border-gray-100">
                 <h4 className="text-sm font-semibold text-gray-900 mb-3">Ekipman Bakım Kapsamı</h4>
                 <div className="space-y-3">
                   {Object.entries(
@@ -170,6 +142,34 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                 </div>
               </div>
 
+              <div className="space-y-2 mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Hizmetler</h4>
+                {(pkg.includedServices || []).map((serviceId, i) => {
+                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
+                  return (
+                    <div key={`inc-${i}`} className="flex items-start space-x-2 text-sm">
+                      <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                      <span className="text-gray-700">
+                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
+                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
+                      </span>
+                    </div>
+                  );
+                })}
+                {(pkg.excludedServices || []).map((serviceId, i) => {
+                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
+                  return (
+                    <div key={`exc-${i}`} className="flex items-start space-x-2 text-sm">
+                      <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                      <span className="text-gray-500 line-through">
+                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
+                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
               {warning && (
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start space-x-2">
                   <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
@@ -182,6 +182,22 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                 <p className={`text-2xl font-bold ${isSelected ? 'text-indigo-700' : 'text-gray-900'}`}>
                   <PriceDisplay amount={costs.annualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
                 </p>
+
+                {(costs.adhocAnnualPrice || 0) > costs.annualPrice && (
+                  <div className="mt-4 bg-green-50/60 border border-green-100 rounded-lg p-3 text-xs">
+                    <div className="flex justify-between items-center text-gray-500 mb-1.5">
+                      <span>Per-Call Anlaşmasız Fiyat:</span>
+                      <span className="line-through"><PriceDisplay amount={costs.adhocAnnualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                    </div>
+                    <div className="flex justify-between items-center text-green-700 font-bold mb-2 pb-2 border-b border-green-200/50">
+                      <span>Bu Paketle Kazancınız:</span>
+                      <span><PriceDisplay amount={costs.adhocAnnualPrice - costs.annualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                    </div>
+                    <p className="text-[10px] text-green-800/80 leading-snug">
+                      * Per-Call hizmetler anlık olarak sadece arızalı cihaza müdahaleyi kapsar. Bu bakım paketi ise <strong>tüm ekipman envanterinizi</strong> ve yukarıdaki <strong>ek hizmetleri</strong> garanti altına alır.
+                    </p>
+                  </div>
+                )}
 
                 {/* Price Breakdown */}
                 <div 

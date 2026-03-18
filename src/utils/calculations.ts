@@ -10,19 +10,21 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
   let fixedEquipmentCost = 0;
   let totalRooms = 0;
   let weightedMultiplierSum = 0;
+  let rawTotalEquipmentHours = 0;
 
   config.locations.forEach(loc => {
     const locMultiplier = admin.locationMultiplier[loc.city] || 1.0;
     totalRooms += loc.rooms.length;
     weightedMultiplierSum += loc.rooms.length * locMultiplier;
 
+    let locEqHours = 0;
     loc.rooms.forEach(room => {
       room.equipment.forEach(eq => {
         const item = admin.catalog?.find(c => c.id === eq.catalogId);
         if (!item) return;
 
         if (item.costType === 'hourly') {
-          totalEquipmentHours += item.costValue * eq.quantity;
+          locEqHours += item.costValue * eq.quantity;
         } else if (item.costType === 'monthly') {
           fixedEquipmentCost += item.costValue * 12 * eq.quantity;
         } else if (item.costType === 'annual') {
@@ -30,7 +32,24 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
         }
       });
     });
+
+    rawTotalEquipmentHours += locEqHours;
+
+    // Apply Economy of Scale discount to this location's equipment hours
+    let scaleMultiplier = 1.0;
+    if (admin.scaleDiscountThreshold && admin.scaleDiscountThreshold > 0 && loc.rooms.length > admin.scaleDiscountThreshold) {
+      const extraRooms = loc.rooms.length - admin.scaleDiscountThreshold;
+      let discount = extraRooms * (admin.scaleDiscountRatePerRoom || 0);
+      if (admin.scaleMaxDiscount && discount > admin.scaleMaxDiscount) {
+        discount = admin.scaleMaxDiscount;
+      }
+      scaleMultiplier = Math.max(0.1, 1 - (discount / 100)); // Max 90% discount safety limit
+    }
+
+    totalEquipmentHours += (locEqHours * scaleMultiplier);
   });
+
+  const scaleDiscountHours = rawTotalEquipmentHours - totalEquipmentHours;
 
   const avgLocMultiplier = totalRooms > 0 ? weightedMultiplierSum / totalRooms : 1.0;
 
@@ -80,19 +99,34 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
   const markupMultiplier = 1 + admin.markupPercentage / 100;
   const annualPrice = annualBaseCost * markupMultiplier;
 
+  // 10.5 Ad-hoc Price
+  let adhocAnnualPrice = 0;
+  if (admin.adhocCalculationMethod === 'fixed_visit') {
+    adhocAnnualPrice = totalVisits * (admin.fixedPerCallPrice || 0);
+  } else {
+    // default to markup logic
+    const adhocMarkupMultiplier = 1 + (admin.adhocMarkupPercentage || 100) / 100;
+    adhocAnnualPrice = annualBaseCost * adhocMarkupMultiplier;
+  }
+
   // 11. Billing Cycle Breakdown
-  let periodicPrice = annualPrice;
-  if (config.billingCycle === 'Aylık') periodicPrice = annualPrice / 12;
-  if (config.billingCycle === 'Üç Aylık') periodicPrice = annualPrice / 4;
+  const cycleMultiplier = admin.billingCycleMultiplier?.[config.billingCycle] || 1.0;
+  const finalAnnualPrice = annualPrice * cycleMultiplier;
+
+  let periodicPrice = finalAnnualPrice;
+  if (config.billingCycle === 'Aylık') periodicPrice = finalAnnualPrice / 12;
+  if (config.billingCycle === 'Üç Aylık') periodicPrice = finalAnnualPrice / 4;
 
   return {
     hourlyRate,
     totalAnnualHours,
     annualBaseCost,
-    annualPrice,
+    annualPrice: finalAnnualPrice,
     periodicPrice,
+    adhocAnnualPrice,
     breakdown: {
       equipmentHours: totalEquipmentHours,
+      scaleDiscountHours,
       visitHours: totalVisitHours,
       proactiveHours,
       totalLogisticsCost,

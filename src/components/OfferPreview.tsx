@@ -156,16 +156,18 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
           <div className="bg-indigo-50 rounded-2xl p-6 border border-indigo-100">
             <div className="flex flex-col md:flex-row md:items-center justify-between">
               <div>
-                <p className="text-indigo-900 font-medium">Toplam Bakım Ücreti</p>
-                <p className="text-sm text-indigo-700/80 mt-1">Faturalandırma: {config.billingCycle}</p>
+                <p className="text-indigo-900 font-medium">Toplam Yıllık Yatırım</p>
+                <p className="text-sm text-indigo-700/80 mt-1">Faturalandırma Planı: {config.billingCycle}</p>
               </div>
               <div className="mt-4 md:mt-0 text-right">
                 <p className="text-4xl font-bold text-indigo-700">
-                  <PriceDisplay amount={costs.periodicPrice} adminSettings={admin} onAdminChange={onAdminChange} />
+                  <PriceDisplay amount={costs.annualPrice} adminSettings={admin} onAdminChange={onAdminChange} />
                 </p>
-                <p className="text-sm text-indigo-700/80 mt-1">
-                  (<PriceDisplay amount={costs.annualPrice} adminSettings={admin} onAdminChange={onAdminChange} /> / yıl)
-                </p>
+                {config.billingCycle !== 'Yıllık' && (
+                  <p className="text-sm text-indigo-700/80 mt-1 font-medium">
+                    (Seçilen Plan: <PriceDisplay amount={costs.periodicPrice} adminSettings={admin} onAdminChange={onAdminChange} /> / {config.billingCycle === 'Aylık' ? 'Ay' : 'Çeyrek'})
+                  </p>
+                )}
               </div>
             </div>
           </div>

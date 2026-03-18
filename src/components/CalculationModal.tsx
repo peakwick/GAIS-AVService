@@ -93,9 +93,18 @@ export function CalculationModal({ isOpen, onClose, config, admin }: Calculation
               <div className="space-y-4">
                 {/* Equipment Hours */}
                 <div className="border-l-4 border-indigo-200 pl-4 py-1">
-                  <p className="text-sm font-semibold text-gray-900">Cihaz Bakım Süresi: {costs.breakdown.equipmentHours.toFixed(1)} sa</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-gray-900">Cihaz Bakım Süresi: {costs.breakdown.equipmentHours.toFixed(1)} sa</p>
+                    {(costs.breakdown.scaleDiscountHours || 0) > 0 && (
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100 flex items-center">
+                        <Percent className="w-3 h-3 mr-1" />
+                        Ölçek Ekonomisi: -{costs.breakdown.scaleDiscountHours?.toFixed(1)} sa
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-gray-500 mt-1">
                     Her cihaz tipi için belirlenen sürelerin toplamı.
+                    {(costs.breakdown.scaleDiscountHours || 0) > 0 && " (Aynı lokasyondaki yüksek oda verimliliğinden dolayı indirim uygulanmıştır.)"}
                   </p>
                 </div>
 
