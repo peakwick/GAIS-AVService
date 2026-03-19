@@ -1,5 +1,12 @@
 export type Location = 'İstanbul' | 'Ankara' | 'İzmir' | 'Diğer';
 export type BillingCycle = 'Aylık' | 'Üç Aylık' | 'Yıllık';
+export type ServiceType = 
+  | 'AV Yıllık Bakım Hizmeti'
+  | 'AV Kurulum'
+  | 'Zebra Yıllık Bakım'
+  | 'Zebra Kurulum'
+  | 'IT Kurulum'
+  | 'IT Yıllık Bakım';
 export type EquipmentType = 'Screen' | 'VideoConferencing' | 'CeilingMic' | 'AudioDSP' | 'ControlSystem' | 'Other';
 export type ServicePackage = string; // Now dynamic, 'custom' is reserved
 
@@ -45,16 +52,32 @@ export interface ProjectLocation {
   rooms: Room[];
 }
 
+export interface SelectedAddon {
+  id: string;
+  quantity: number;
+}
+
 export interface ConfigState {
   clientName: string;
   projectName: string;
   locations: ProjectLocation[];
   servicePackage: ServicePackage;
-  selectedAddons: string[];
+  selectedAddons: SelectedAddon[];
   incidentVisitsPerYear: number;
   proactiveVisitsPerYear: number;
   billingCycle: BillingCycle;
+  selectedServiceType: ServiceType;
+  contractStartDate: string;
+  contractDurationMonths: number;
   customConditions: string;
+}
+
+export interface AddonDetail {
+  id: string;
+  name: string;
+  quantity: number;
+  cost: number;
+  price: number;
 }
 
 export interface CalculatedCosts {
@@ -68,6 +91,18 @@ export interface CalculatedCosts {
     equipmentHours: number;
     scaleDiscountHours?: number;
     visitHours: number;
+    proactiveHours: number;
+    totalLogisticsCost: number;
+    fixedEquipmentCost: number;
+    fixedServiceCost: number;
+    // Costs including markup
+    equipmentCost: number;
+    visitCost: number;
+    proactiveCost: number;
+    logisticsCost: number;
+    // Add-on specific
+    addonCost: number;
+    addonDetails: AddonDetail[];
   };
 }
 
@@ -92,6 +127,7 @@ export interface AdminSettings {
   servicePackages: ServicePackageDef[];
   globalIncludedServices: string[];
   globalExcludedServices: string[];
+  defaultCustomConditions: string;
   catalog: CatalogItem[];
   usdExchangeRate: number;
   currency: 'TRY' | 'USD';

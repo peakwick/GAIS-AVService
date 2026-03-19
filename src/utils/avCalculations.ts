@@ -1,4 +1,4 @@
-import { AdminSettings, ConfigState, ServicePackage } from '../types';
+import { AdminSettings, ConfigState, ServicePackage, AddonDetail } from '../types';
 
 export function calculateCosts(config: ConfigState, admin: AdminSettings) {
   // 1. Calculate Technician Hourly Rate
@@ -61,24 +61,40 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
 
   // 4. Proactive Maintenance & Service Catalog Costs
   let proactiveHours = admin.remoteSupportBaseHours + (totalRooms * admin.remoteSupportHoursPerRoom) + (totalEquipmentHours * 0.05);
-
   let fixedServiceCost = 0;
 
-  // Add costs from user-selected add-on services ("toppings")
+  // 4b. Add-on Services ("toppings") - Separated for breakdown visibility
+  let totalAddonBaseCost = 0;
+  const addonDetails: AddonDetail[] = [];
+  const markupMultiplier = 1 + admin.markupPercentage / 100;
+
   const selectedAddons = config.selectedAddons || [];
-  selectedAddons.forEach(srvId => {
-    const item = admin.catalog?.find(c => c.id === srvId);
+  selectedAddons.forEach(addon => {
+    const item = admin.catalog?.find(c => c.id === addon.id);
     if (!item) return;
 
+    const qty = addon.quantity || 1;
+    let addonBaseCost = 0;
+
     if (item.costType === 'hourly') {
-      proactiveHours += item.costValue;
+      addonBaseCost = item.costValue * qty * hourlyRate * avgLocMultiplier;
     } else if (item.costType === 'monthly') {
-      fixedServiceCost += item.costValue * 12;
+      addonBaseCost = item.costValue * 12 * qty;
     } else if (item.costType === 'annual') {
-      fixedServiceCost += item.costValue;
+      addonBaseCost = item.costValue * qty;
     } else if (item.costType === 'per_unit') {
-      fixedServiceCost += item.costValue * (item.unitCount || 1);
+      addonBaseCost = item.costValue * (item.unitCount || 1) * qty;
     }
+
+    totalAddonBaseCost += addonBaseCost;
+    
+    addonDetails.push({
+      id: item.id,
+      name: item.name,
+      quantity: qty,
+      cost: addonBaseCost,
+      price: addonBaseCost * markupMultiplier
+    });
   });
 
   // 5. Total Hours
@@ -91,19 +107,20 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
 
   // 9. Base Cost
   const laborCost = totalAnnualHours * hourlyRate * avgLocMultiplier;
-  const annualBaseCost = laborCost + totalLogisticsCost + fixedEquipmentCost + fixedServiceCost;
+  const annualBaseCost = laborCost + totalLogisticsCost + fixedEquipmentCost + fixedServiceCost + totalAddonBaseCost;
 
   // 10. Apply Markup
-  const markupMultiplier = 1 + admin.markupPercentage / 100;
   const annualPrice = annualBaseCost * markupMultiplier;
 
   // 10.5 Ad-hoc Price
+  const adhocMarkupMultiplier = 1 + (admin.adhocMarkupPercentage || 100) / 100;
   let adhocAnnualPrice = 0;
+  
   if (admin.adhocCalculationMethod === 'fixed_visit') {
-    adhocAnnualPrice = totalVisits * (admin.fixedPerCallPrice || 0);
+    // Fixed visit fee for visits + add-on costs with ad-hoc markup
+    adhocAnnualPrice = (totalVisits * (admin.fixedPerCallPrice || 0)) + (totalAddonBaseCost * adhocMarkupMultiplier);
   } else {
-    // default to markup logic
-    const adhocMarkupMultiplier = 1 + (admin.adhocMarkupPercentage || 100) / 100;
+    // Markup based logic: apply ad-hoc markup to all base costs
     adhocAnnualPrice = annualBaseCost * adhocMarkupMultiplier;
   }
 
@@ -135,6 +152,9 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
       visitCost: totalVisitHours * hourlyRate * avgLocMultiplier * markupMultiplier,
       proactiveCost: (proactiveHours * hourlyRate * avgLocMultiplier + fixedServiceCost) * markupMultiplier,
       logisticsCost: totalLogisticsCost * markupMultiplier,
+      // Add-on specific
+      addonCost: totalAddonBaseCost * markupMultiplier,
+      addonDetails
     }
   };
 }

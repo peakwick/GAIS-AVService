@@ -1,18 +1,18 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calculator, Clock, MapPin, Percent, Info, ArrowRight } from 'lucide-react';
-import { AdminSettings, ConfigState } from '../types';
-import { calculateCosts } from '../utils/calculations';
-import { PriceDisplay } from './PriceDisplay';
+import { X, Calculator, Clock, MapPin, Percent, Info, ArrowRight, Settings2 } from 'lucide-react';
+import { AdminSettings, ConfigState } from '../../types';
+import { calculateCosts } from '../../utils/avCalculations';
+import { PriceDisplay } from '../PriceDisplay';
 
-interface CalculationModalProps {
+interface AVCalculationModalProps {
   isOpen: boolean;
   onClose: () => void;
   config: ConfigState;
   admin: AdminSettings;
 }
 
-export function CalculationModal({ isOpen, onClose, config, admin }: CalculationModalProps) {
+export function AVCalculationModal({ isOpen, onClose, config, admin }: AVCalculationModalProps) {
   const costs = calculateCosts(config, admin);
   const roomCount = config.locations.reduce((sum, loc) => sum + loc.rooms.length, 0);
   
@@ -151,21 +151,64 @@ export function CalculationModal({ isOpen, onClose, config, admin }: Calculation
               </div>
             </section>
 
+            {/* 3.5 Add-ons (Ek Hizmetler) */}
+            {costs.breakdown.addonCost > 0 && (
+              <section>
+                <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-wider mb-4 flex items-center">
+                  <Settings2 className="w-4 h-4 mr-2" />
+                  3.5 Ek Hizmetler (Add-ons)
+                </h3>
+                <div className="space-y-3">
+                  {costs.breakdown.addonDetails.map((addon) => (
+                    <div key={addon.id} className="border-l-4 border-indigo-400 pl-4 py-1 bg-indigo-50/30 rounded-r-lg">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-semibold text-gray-900">
+                          {addon.name} {addon.quantity > 1 && <span className="text-indigo-600 ml-1">x{addon.quantity}</span>}
+                        </p>
+                        <span className="text-sm font-bold text-indigo-700">
+                          <PriceDisplay amount={addon.price} adminSettings={admin} />
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-500 mt-0.5">
+                        Maliyet: <PriceDisplay amount={addon.cost} adminSettings={admin} /> + %{admin.markupPercentage} Kar Marjı
+                      </p>
+                    </div>
+                  ))}
+                  <div className="pt-2 flex justify-between items-center text-sm font-bold text-indigo-900 px-1">
+                    <span>Toplam Ek Hizmet Bedeli:</span>
+                    <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={admin} /></span>
+                  </div>
+                </div>
+              </section>
+            )}
+
             {/* 4. Final Math */}
             <section className="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg">
               <h3 className="text-sm font-bold uppercase tracking-wider mb-4 opacity-80">4. Nihai Hesaplama</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span>Toplam Yıllık Saat x Saatlik Ücret x Konum:</span>
-                  <span className="font-mono">({costs.totalAnnualHours.toFixed(1)} x ₺{hourlyRate.toFixed(0)} x {avgLocMultiplier.toFixed(2)})</span>
+                  <span>Toplam İşçilik + Yol (Saat x Ücret x Konum):</span>
+                  <span className="font-mono">₺{(costs.totalAnnualHours * hourlyRate * avgLocMultiplier).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span>Toplam Lojistik Maliyeti:</span>
+                  <span>Toplam Lojistik (Yakıt / Otopark):</span>
                   <span className="font-mono">₺{costs.breakdown.totalLogisticsCost.toLocaleString()}</span>
                 </div>
+                {(costs.breakdown.fixedEquipmentCost > 0 || costs.breakdown.fixedServiceCost > 0) && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Sabit Cihaz/Hizmet Maliyetleri:</span>
+                    <span className="font-mono">₺{(costs.breakdown.fixedEquipmentCost + costs.breakdown.fixedServiceCost).toLocaleString()}</span>
+                  </div>
+                )}
+                {costs.breakdown.addonCost > 0 && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Ek Hizmetler (Add-ons) Maliyeti:</span>
+                    <span className="font-mono">₺{(costs.breakdown.addonCost / markupMultiplier).toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                  </div>
+                )}
                 <div className="pt-3 border-t border-white/20 flex items-center justify-between">
-                  <span className="font-semibold">Toplam Yıllık Maliyet:</span>
-                  <span className="font-mono">₺{costs.annualBaseCost.toLocaleString()}</span>
+                  <span className="font-semibold">Toplam Yıllık Maliyet (Ham):</span>
+                  <span className="font-mono text-xl">₺{costs.annualBaseCost.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
                 </div>
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Nihai Fiyat (Maliyet x Kar Marjı):</span>

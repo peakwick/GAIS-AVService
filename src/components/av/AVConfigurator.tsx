@@ -1,9 +1,9 @@
 import React from 'react';
-import { ConfigState, Room, Equipment, AdminSettings, ProjectLocation } from '../types';
-import { LOCATIONS, BILLING_CYCLES } from '../constants';
+import { ConfigState, Room, Equipment, AdminSettings, ProjectLocation } from '../../types';
+import { LOCATIONS, BILLING_CYCLES } from '../../constants/avConstants';
 import { Plus, Trash2, Monitor, Mic, Video, Settings, Speaker, Box, Wrench, MapPin } from 'lucide-react';
 
-interface ConfiguratorProps {
+interface AVConfiguratorProps {
   config: ConfigState;
   adminSettings: AdminSettings;
   onChange: (config: ConfigState) => void;
@@ -22,7 +22,7 @@ const getIconForType = (iconName?: string) => {
   }
 };
 
-export function Configurator({ config, adminSettings, onChange }: ConfiguratorProps) {
+export function AVConfigurator({ config, adminSettings, onChange }: AVConfiguratorProps) {
   const updateField = (field: keyof ConfigState, value: any) => {
     onChange({ ...config, [field]: value });
   };
@@ -169,6 +169,32 @@ export function Configurator({ config, adminSettings, onChange }: ConfiguratorPr
                   placeholder="örn. Merkez Ofis AV Bakım"
                   className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bakım Başlangıç Tarihi</label>
+                <input
+                  type="date"
+                  value={config.contractStartDate}
+                  onChange={(e) => updateField('contractStartDate', e.target.value)}
+                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Bakım Süresi ve Bitiş</label>
+                <div className="flex items-center justify-between p-2 bg-gray-50 border border-gray-200 rounded-lg text-sm">
+                  <span className="text-gray-600 font-medium">12 Ay (Sabit)</span>
+                  <div className="flex items-center space-x-1 text-indigo-700 font-bold">
+                    <span>Bitiş:</span>
+                    <span>
+                      {(() => {
+                        if (!config.contractStartDate) return '-';
+                        const d = new Date(config.contractStartDate);
+                        d.setFullYear(d.getFullYear() + 1);
+                        return d.toLocaleDateString('tr-TR');
+                      })()}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fatura Dönemi</label>

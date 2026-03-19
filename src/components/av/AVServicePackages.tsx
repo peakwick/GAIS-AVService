@@ -1,11 +1,11 @@
 import React from 'react';
-import { ConfigState, AdminSettings, ServicePackage } from '../types';
-import { BILLING_CYCLES } from '../constants';
-import { calculatePackageCost } from '../utils/calculations';
+import { ConfigState, AdminSettings, ServicePackage } from '../../types';
+import { BILLING_CYCLES } from '../../constants/avConstants';
+import { calculatePackageCost, calculateCosts } from '../../utils/avCalculations';
 import { Package, CheckCircle2, AlertCircle, Settings2, Check, X, Circle, AlertTriangle, Calculator } from 'lucide-react';
-import { PriceDisplay } from './PriceDisplay';
+import { PriceDisplay } from '../PriceDisplay';
 
-interface ServicePackagesProps {
+interface AVServicePackagesProps {
   config: ConfigState;
   adminSettings: AdminSettings;
   onChange: (config: ConfigState) => void;
@@ -13,7 +13,7 @@ interface ServicePackagesProps {
   onShowBreakdown?: (config: ConfigState) => void;
 }
 
-export function ServicePackages({ config, adminSettings, onChange, onAdminChange, onShowBreakdown }: ServicePackagesProps) {
+export function AVServicePackages({ config, adminSettings, onChange, onAdminChange, onShowBreakdown }: AVServicePackagesProps) {
   const updateField = (field: keyof ConfigState, value: any) => {
     onChange({ ...config, [field]: value });
   };
@@ -144,13 +144,31 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
 
               {/* Standard features always included in any package */}
               <div className="space-y-2 mb-4">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">Her Pakette Dahil Olan</h4>
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Dahil Olan Hizmetler</h4>
                 {(adminSettings.globalIncludedServices || []).map((f, i) => (
-                  <div key={i} className="flex items-start space-x-2 text-sm">
+                  <div key={`std-${i}`} className="flex items-start space-x-2 text-sm">
                     <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                     <span className="text-gray-700">{f}</span>
                   </div>
                 ))}
+                {/* User-selected add-ons */}
+                {(config.selectedAddons || []).map((addon, i) => {
+                  const catalogItem = adminSettings.catalog?.find(item => item.id === addon.id);
+                  if (!catalogItem) return null;
+                  return (
+                    <div key={`addon-${i}`} className="flex items-start space-x-2 text-sm">
+                      <Check className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                      <span className="text-gray-900 font-medium">
+                        {catalogItem.name}
+                        {addon.quantity > 1 && (
+                          <span className="ml-1.5 text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded text-[10px]">
+                            x{addon.quantity}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Global excluded services */}
@@ -222,6 +240,13 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                       <span className="font-medium"><PriceDisplay amount={costs.breakdown.logisticsCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
                     </div>
                   )}
+
+                  {costs.breakdown.addonCost > 0 && (
+                    <div className="flex justify-between text-indigo-600 font-semibold">
+                      <span>Ek Hizmetler (Add-ons):</span>
+                      <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                    </div>
+                  )}
                   
                   <div className="flex items-center justify-center pt-1 text-[10px] text-indigo-500 font-medium opacity-0 group-hover/breakdown:opacity-100 transition-opacity">
                     <Calculator className="w-3 h-3 mr-1" />
@@ -238,49 +263,130 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
       {(() => {
         const addonServices = (adminSettings.catalog || []).filter(item => item.type === 'service');
         if (addonServices.length === 0) return null;
+
+        const costs = calculateCosts(config, adminSettings);
+        const hourlyRate = (adminSettings.techMonthlySalary + adminSettings.techMonthlyOverhead) / adminSettings.workingDaysPerMonth / 8;
+        const totalRooms = config.locations.reduce((sum, loc) => sum + loc.rooms.length, 0);
+        const weightedMultiplierSum = config.locations.reduce((sum, loc) => sum + loc.rooms.length * (adminSettings.locationMultiplier[loc.city] || 1.0), 0);
+        const avgLocMultiplier = totalRooms > 0 ? weightedMultiplierSum / totalRooms : 1.0;
+        const markupMultiplier = 1 + adminSettings.markupPercentage / 100;
+
+        const updateAddonQuantity = (id: string, qty: number) => {
+          const current = config.selectedAddons || [];
+          if (qty < 1) {
+            onChange({ ...config, selectedAddons: current.filter(a => a.id !== id) });
+            return;
+          }
+          onChange({ ...config, selectedAddons: current.map(a => a.id === id ? { ...a, quantity: qty } : a) });
+        };
+
         const toggleAddon = (id: string) => {
           const current = config.selectedAddons || [];
-          const next = current.includes(id) ? current.filter(a => a !== id) : [...current, id];
-          onChange({ ...config, selectedAddons: next });
+          const existing = current.find(a => a.id === id);
+          if (existing) {
+            onChange({ ...config, selectedAddons: current.filter(a => a.id !== id) });
+          } else {
+            onChange({ ...config, selectedAddons: [...current, { id, quantity: 1 }] });
+          }
         };
+
         return (
-          <div className="mt-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+          <div className="mt-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6 line-print-hidden">
             <div className="mb-5">
               <h3 className="text-lg font-bold text-gray-900 flex items-center">
                 <Settings2 className="w-5 h-5 mr-2 text-indigo-500" />
                 Ek Hizmetler (Add-ons)
               </h3>
-              <p className="text-sm text-gray-500 mt-1">Seçtiğiniz pakete eklemek istediğiniz ek hizmetleri işaretleyin. Seçiminiz fiyata otomatik yansıyacaktır.</p>
+              <p className="text-sm text-gray-500 mt-1">Seçtiğiniz pakete eklemek istediğiniz ek hizmetleri işaretleyin. Fiyatlar kar marjı dahil gösterilmektedir.</p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {addonServices.map((service) => {
-                const isSelected = (config.selectedAddons || []).includes(service.id);
+                const selected = (config.selectedAddons || []).find(a => a.id === service.id);
+                const isSelected = !!selected;
+                
+                // Calculate individual cost and price for the card
+                let baseCost = 0;
+                if (service.costType === 'hourly') {
+                  baseCost = service.costValue * hourlyRate * avgLocMultiplier;
+                } else if (service.costType === 'monthly') {
+                  baseCost = service.costValue * 12;
+                } else if (service.costType === 'annual') {
+                  baseCost = service.costValue;
+                } else if (service.costType === 'per_unit') {
+                  baseCost = service.costValue * (service.unitCount || 1);
+                }
+
+                const displayPrice = baseCost * markupMultiplier;
+                const adhocMarkupMultiplier = 1 + (adminSettings.adhocMarkupPercentage || 100) / 100;
+                const adhocPrice = baseCost * adhocMarkupMultiplier;
+
                 return (
                   <div
                     key={service.id}
-                    onClick={() => toggleAddon(service.id)}
-                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all flex items-start space-x-3 ${
+                    className={`rounded-xl border-2 p-4 transition-all flex flex-col ${
                       isSelected
-                        ? 'border-indigo-500 bg-indigo-50'
+                        ? 'border-indigo-500 bg-indigo-50 shadow-sm'
                         : 'border-gray-200 bg-gray-50 hover:border-indigo-200 hover:bg-white'
                     }`}
                   >
-                    <div className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'
-                    }`}>
-                      {isSelected && <Check className="w-3 h-3 text-white" />}
+                    <div 
+                      className="flex items-start space-x-3 cursor-pointer"
+                      onClick={() => toggleAddon(service.id)}
+                    >
+                      <div className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                        isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <div className="flex-1">
+                        <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-indigo-900' : 'text-gray-800'}`}>{service.name}</p>
+                        {service.description && (
+                          <p className="text-xs text-gray-500 mt-1">{service.description}</p>
+                        )}
+                      </div>
                     </div>
-                    <div>
-                      <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-indigo-900' : 'text-gray-800'}`}>{service.name}</p>
-                      {service.description && (
-                        <p className="text-xs text-gray-500 mt-0.5">{service.description}</p>
-                      )}
-                      {service.costType !== 'free' && service.costValue > 0 && (
-                        <p className="text-xs font-medium text-indigo-600 mt-1">
-                          +{service.costValue} {service.costType === 'hourly' ? 'sa/yıl' : `₺/${service.costType === 'monthly' ? 'ay' : 'yıl'}`}
-                        </p>
-                      )}
+
+                    <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                      <div className="flex flex-col space-y-2">
+                        <div>
+                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Birim Maliyet</div>
+                          <div className="text-xs text-gray-400 font-medium">
+                            <PriceDisplay amount={baseCost} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Anlaşmasız Fiyat</div>
+                          <div className="text-xs text-gray-400 font-medium">
+                            <PriceDisplay amount={adhocPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end">
+                        <div className="text-[10px] text-indigo-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Teklif Fiyatı</div>
+                        <div className="text-sm font-bold text-indigo-700">
+                          <PriceDisplay amount={displayPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                          {service.costType === 'per_unit' && <span className="text-[10px] font-normal text-gray-500 ml-1">/ adet</span>}
+                        </div>
+                      </div>
                     </div>
+
+                    {isSelected && service.costType === 'per_unit' && (
+                      <div className="mt-3 flex items-center justify-between bg-white rounded-lg border border-indigo-100 p-1.5">
+                        <span className="text-[10px] font-bold text-indigo-500 uppercase ml-1">Adet</span>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); updateAddonQuantity(service.id, (selected?.quantity || 1) - 1); }}
+                            className="w-7 h-7 flex items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                          >-</button>
+                          <span className="text-sm font-bold text-indigo-900 w-6 text-center">{selected?.quantity || 1}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); updateAddonQuantity(service.id, (selected?.quantity || 1) + 1); }}
+                            className="w-7 h-7 flex items-center justify-center rounded-md bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                          >+</button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}

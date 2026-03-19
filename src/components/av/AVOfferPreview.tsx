@@ -1,10 +1,10 @@
 import React from 'react';
-import { AdminSettings, ConfigState } from '../types';
-import { calculateCosts } from '../utils/calculations';
-import { FileText, Download, Printer, Check, X, Calculator } from 'lucide-react';
-import { PriceDisplay } from './PriceDisplay';
+import { AdminSettings, ConfigState } from '../../types';
+import { calculateCosts } from '../../utils/avCalculations';
+import { FileText, Download, Printer, Check, X, Calculator, Settings, Percent, Info, ChevronRight, Package, ShieldCheck, Layers } from 'lucide-react';
+import { PriceDisplay } from '../PriceDisplay';
 
-interface OfferPreviewProps {
+interface AVOfferPreviewProps {
   config: ConfigState;
   admin: AdminSettings;
   onChangeConfig: (config: ConfigState) => void;
@@ -12,7 +12,7 @@ interface OfferPreviewProps {
   onShowBreakdown?: () => void;
 }
 
-export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onShowBreakdown }: OfferPreviewProps) {
+export function AVOfferPreview({ config, admin, onChangeConfig, onAdminChange, onShowBreakdown }: AVOfferPreviewProps) {
   const costs = calculateCosts(config, admin);
 
   const handlePrint = () => {
@@ -87,6 +87,33 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
               <p className="text-2xl font-light text-gray-900">{config.proactiveVisitsPerYear || 0} <span className="text-sm">/ yıl</span></p>
             </div>
           </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pb-6 border-b border-gray-100">
+            <div>
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Başlangıç Tarihi</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {config.contractStartDate ? new Date(config.contractStartDate).toLocaleDateString('tr-TR') : '-'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Bitiş Tarihi</p>
+              <p className="text-sm font-semibold text-gray-900">
+                {(() => {
+                  if (!config.contractStartDate) return '-';
+                  const d = new Date(config.contractStartDate);
+                  d.setFullYear(d.getFullYear() + 1);
+                  return d.toLocaleDateString('tr-TR');
+                })()}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Fatura Dönemi</p>
+              <p className="text-sm font-semibold text-gray-900">{config.billingCycle}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-1">Teklif Nosu</p>
+              <p className="text-sm font-mono font-bold text-indigo-600">OFFER-{new Date().getFullYear()}-{(Math.random() * 10000).toFixed(0).padStart(4, '0')}</p>
+            </div>
+          </div>
 
           <div className="mb-6">
             <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Ekipman İşçilik Detayları</h4>
@@ -118,13 +145,20 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
                   </div>
                 ))}
                 {/* User-selected add-ons */}
-                {(config.selectedAddons || []).map((addonId, i) => {
-                  const catalogItem = admin.catalog?.find(item => item.id === addonId);
+                {(config.selectedAddons || []).map((addon, i) => {
+                  const catalogItem = admin.catalog?.find(item => item.id === addon.id);
                   if (!catalogItem) return null;
                   return (
                     <div key={`addon-${i}`} className="flex items-start space-x-2 text-sm">
                       <Check className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
-                      <span className="text-gray-700 font-medium">{catalogItem.name}</span>
+                      <span className="text-gray-700 font-medium">
+                        {catalogItem.name}
+                        {addon.quantity > 1 && (
+                          <span className="ml-1.5 text-indigo-600 font-bold bg-indigo-50 px-1.5 py-0.5 rounded text-[10px]">
+                            x{addon.quantity}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   );
                 })}
@@ -209,7 +243,20 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
 
         {/* Conditions */}
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Şartlar ve Koşullar</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">Şartlar ve Koşullar</h3>
+            <button
+              onClick={() => {
+                if (window.confirm('Şartlar ve koşulları yönetici ayarlarındaki varsayılan metne sıfırlamak istediğinize emin misiniz?')) {
+                  onChangeConfig({ ...config, customConditions: admin.defaultCustomConditions });
+                }
+              }}
+              className="text-xs flex items-center space-x-1 text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors print:hidden"
+            >
+              <Settings className="w-3 h-3" />
+              <span>Varsayılana Sıfırla</span>
+            </button>
+          </div>
           <div className="print:hidden">
             <textarea
               value={config.customConditions}

@@ -1,4 +1,4 @@
-import { AdminSettings, ConfigState, CatalogItem } from './types';
+import { AdminSettings, ConfigState, CatalogItem } from '../types';
 
 export const DEFAULT_CATALOG: CatalogItem[] = [
   { id: 'eq_screen', type: 'equipment', name: 'Ekran / Monitör', description: 'Görüntüleme cihazları', costType: 'hourly', costValue: 0.5, icon: 'monitor' },
@@ -21,6 +21,8 @@ export const DEFAULT_CATALOG: CatalogItem[] = [
   { id: 'srv_11', type: 'service', name: 'Periyodik Sistem Raporlaması', description: '', costType: 'free', costValue: 0, icon: 'tool' },
   { id: 'srv_12', type: 'service', name: 'VIP Toplantı Desteği', description: '', costType: 'free', costValue: 0, icon: 'tool' },
 ];
+
+export const DEFAULT_CUSTOM_CONDITIONS = '1. Bakım ücreti, uzaktan destek ve planlı önleyici ziyaretleri kapsar.\n2. Yedek parçalar bu sözleşmeye dahil değildir.\n3. Proaktif bakım dışındaki acil çağrılar ayrıca faturalandırılacaktır.\n4. Kritik sorunlar için müdahale süresi ertesi iş günüdür (NBD).';
 
 export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   techMonthlySalary: 50000,
@@ -81,13 +83,17 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     'Uzaktan Telefon ve E-posta Desteği',
     'Firmware ve Yazılım Güncelleme',
     'Yerinde Arıza Tespiti ve Teşhis',
+    'Ekipman Temizliği',
+    'Detaylı Envanter Çalışması (Seri Numara, Firmware Ver., Garanti Tarihleri)',
+    'Garantisi devam eden ürünlerin üreticiye gönderimi ve takibi',
   ],
   globalExcludedServices: [
     'Kablolama, altyapı tadilatları veya kanal işleri',
     'Ekipman taşıma ve fiziksel modifikasyonlar (Relokasyon)',
-    'Arızalı cihazın onarımı dışında yeni yedek parça ve donanım satın alımları',
     'Elektrik, ağ veya IP atamaları ile ilgili müşteri tarafındaki sorunlar',
-  ]
+    'Arıza dışında ekipman söküm ve montaj işleri',
+  ],
+  defaultCustomConditions: DEFAULT_CUSTOM_CONDITIONS,
 };
 
 export const DEFAULT_CONFIG_STATE: ConfigState = {
@@ -99,8 +105,19 @@ export const DEFAULT_CONFIG_STATE: ConfigState = {
   incidentVisitsPerYear: 5,
   proactiveVisitsPerYear: 4,
   billingCycle: 'Yıllık',
-  customConditions: '1. Bakım ücreti, uzaktan destek ve planlı önleyici ziyaretleri kapsar.\n2. Yedek parçalar bu sözleşmeye dahil değildir.\n3. Proaktif bakım dışındaki acil çağrılar ayrıca faturalandırılacaktır.\n4. Kritik sorunlar için müdahale süresi ertesi iş günüdür (NBD).',
+  selectedServiceType: 'AV Yıllık Bakım Hizmeti',
+  contractStartDate: new Date().toISOString().split('T')[0],
+  contractDurationMonths: 12,
+  customConditions: DEFAULT_CUSTOM_CONDITIONS,
 };
 
 export const LOCATIONS = ['İstanbul', 'Ankara', 'İzmir', 'Diğer'] as const;
 export const BILLING_CYCLES = ['Yıllık', 'Üç Aylık', 'Aylık'] as const;
+export const SERVICE_TYPES = [
+  'AV Yıllık Bakım Hizmeti',
+  'AV Kurulum',
+  'Zebra Yıllık Bakım',
+  'Zebra Kurulum',
+  'IT Kurulum',
+  'IT Yıllık Bakım'
+] as const;

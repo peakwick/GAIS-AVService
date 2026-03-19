@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { AdminSettings, ServicePackageDef, CatalogItem, CostType } from '../types';
-import { LOCATIONS, BILLING_CYCLES } from '../constants';
-import { Settings, Users, Clock, MapPin, Percent, Package, Plus, Trash2, List, Monitor, Mic, Video, Speaker, Box, Wrench, Check } from 'lucide-react';
+import { AdminSettings, ServicePackageDef, CatalogItem, CostType } from '../../types';
+import { LOCATIONS, BILLING_CYCLES } from '../../constants/avConstants';
+import { Settings, Users, Clock, MapPin, Percent, Package, Plus, Trash2, List, Monitor, Mic, Video, Speaker, Box, Wrench, Check, FileText } from 'lucide-react';
 
-interface AdminPanelProps {
+interface AVAdminPanelProps {
   settings: AdminSettings;
   onChange: (settings: AdminSettings) => void;
 }
 
-export function AdminPanel({ settings, onChange }: AdminPanelProps) {
-  const [activeTab, setActiveTab] = useState<'costs' | 'catalog' | 'packages'>('costs');
+export function AVAdminPanel({ settings, onChange }: AVAdminPanelProps) {
+  const [activeTab, setActiveTab] = useState<'costs' | 'catalog' | 'packages' | 'terms'>('costs');
   const [newExclusion, setNewExclusion] = useState('');
   const [newIncluded, setNewIncluded] = useState('');
 
@@ -123,6 +123,16 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
         >
           Hizmet Paketleri
         </button>
+        <button
+          onClick={() => setActiveTab('terms')}
+          className={`py-3 px-6 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+            activeTab === 'terms'
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          Sözleşme Şartları
+        </button>
       </div>
 
       <div className="space-y-8">
@@ -196,7 +206,7 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
                         {item.costType !== 'free' && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {item.costType === 'hourly' ? 'Süre (Saat)' : 'Tutar (₺)'}
+                              {item.costType === 'hourly' ? 'Süre (Saat)' : 'Maliyet (₺)'}
                             </label>
                             <input
                               type="number"
@@ -238,6 +248,7 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-lg font-medium text-gray-900">Hizmetler</h3>
+                <p className="text-xs text-gray-500 mt-1 italic font-medium">(Kar eklenmeden önceki tüm maliyet değerlerini giriniz)</p>
                 <button
                   onClick={() => addCatalogItem('service')}
                   className="flex items-center space-x-2 text-sm text-indigo-600 hover:text-indigo-700 font-medium"
@@ -286,7 +297,7 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
                         {item.costType !== 'free' && (
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
-                              {item.costType === 'hourly' ? 'Süre (Saat)' : 'Tutar (₺)'}
+                              {item.costType === 'hourly' ? 'Süre (Saat)' : 'Maliyet (₺)'}
                             </label>
                             <input
                               type="number"
@@ -613,7 +624,7 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Anlaşmalı Kar Marjı (%)</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Yıllık Bakım Kar Marjı (%)</label>
               <div className="relative">
                 <input
                   type="number"
@@ -659,11 +670,12 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Sabit Ziyaret Ücreti Değeri</label>
                     <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
                       <input
                         type="number"
                         value={settings.fixedPerCallPrice || 0}
                         onChange={(e) => handleChange('fixedPerCallPrice', Number(e.target.value))}
-                        className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                        className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
                       />
                     </div>
                   </div>
@@ -881,6 +893,32 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
 
           </div>
         </div>
+        )}
+        {/* Contract Terms Management */}
+        {activeTab === 'terms' && (
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-indigo-500" />
+              Sözleşme Özel Şartları (Varsayılan)
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">
+              Yeni oluşturulan tekliflerde varsayılan olarak gelecek özel şartları ve koşulları buraya ekleyin. Her bir maddeyi yeni satırda belirtin.
+            </p>
+            <div className="space-y-4">
+              <textarea
+                value={settings.defaultCustomConditions}
+                onChange={(e) => handleChange('defaultCustomConditions', e.target.value)}
+                rows={12}
+                placeholder="Her maddeyi yeni bir satıra yazın..."
+                className="w-full rounded-xl border-gray-300 border p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none leading-relaxed min-h-[300px]"
+              />
+              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                <p className="text-xs text-indigo-700 leading-relaxed font-medium">
+                  <strong>İpucu:</strong> Buraya yazdığınız maddeler, her yeni teklif oluşturulduğunda otomatik olarak "Özel Şartlar ve Koşullar" bölümüne eklenecektir. Teklif bazlı değişiklikleri yine teklif hazırlar kısmından yapabilirsiniz.
+                </p>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>
