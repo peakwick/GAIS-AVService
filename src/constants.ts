@@ -60,8 +60,6 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
       proactiveVisits: 4,
       desc: 'Yılda 5 arıza müdahalesi, 4 önleyici bakım ve uzaktan destek.', 
       maxRooms: 10,
-      includedServices: ['srv_7', 'srv_3', 'srv_11'],
-      excludedServices: ['srv_9', 'srv_4', 'srv_12']
     },
     { 
       id: '10_visits', 
@@ -70,8 +68,6 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
       proactiveVisits: 6,
       desc: 'Yılda 10 arıza müdahalesi, 6 önleyici bakım ve uzaktan destek.', 
       maxRooms: 30,
-      includedServices: ['srv_7', 'srv_3', 'srv_11', 'srv_6'],
-      excludedServices: ['srv_9', 'srv_12']
     },
     { 
       id: '20_visits', 
@@ -79,9 +75,18 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
       incidentVisits: 20,
       proactiveVisits: 12,
       desc: 'Yılda 20 arıza müdahalesi, 12 önleyici bakım ve uzaktan destek.',
-      includedServices: ['srv_7', 'srv_3', 'srv_11', 'srv_6', 'srv_9', 'srv_8', 'srv_12'],
-      excludedServices: []
     },
+  ],
+  globalIncludedServices: [
+    'Uzaktan Telefon ve E-posta Desteği',
+    'Firmware ve Yazılım Güncelleme',
+    'Yerinde Arıza Tespiti ve Teşhis',
+  ],
+  globalExcludedServices: [
+    'Kablolama, altyapı tadilatları veya kanal işleri',
+    'Ekipman taşıma ve fiziksel modifikasyonlar (Relokasyon)',
+    'Arızalı cihazın onarımı dışında yeni yedek parça ve donanım satın alımları',
+    'Elektrik, ağ veya IP atamaları ile ilgili müşteri tarafındaki sorunlar',
   ]
 };
 
@@ -90,6 +95,7 @@ export const DEFAULT_CONFIG_STATE: ConfigState = {
   projectName: '',
   locations: [],
   servicePackage: '5_visits',
+  selectedAddons: [],
   incidentVisitsPerYear: 5,
   proactiveVisitsPerYear: 4,
   billingCycle: 'Yıllık',

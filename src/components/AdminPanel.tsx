@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AdminSettings, ServicePackageDef, CatalogItem, CostType } from '../types';
 import { LOCATIONS, BILLING_CYCLES } from '../constants';
-import { Settings, Users, Clock, MapPin, Percent, Package, Plus, Trash2, List, Monitor, Mic, Video, Speaker, Box, Wrench } from 'lucide-react';
+import { Settings, Users, Clock, MapPin, Percent, Package, Plus, Trash2, List, Monitor, Mic, Video, Speaker, Box, Wrench, Check } from 'lucide-react';
 
 interface AdminPanelProps {
   settings: AdminSettings;
@@ -10,6 +10,8 @@ interface AdminPanelProps {
 
 export function AdminPanel({ settings, onChange }: AdminPanelProps) {
   const [activeTab, setActiveTab] = useState<'costs' | 'catalog' | 'packages'>('costs');
+  const [newExclusion, setNewExclusion] = useState('');
+  const [newIncluded, setNewIncluded] = useState('');
 
   const handleChange = (field: keyof AdminSettings, value: any) => {
     onChange({ ...settings, [field]: value });
@@ -48,34 +50,6 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
     onChange({ ...settings, servicePackages: newPackages });
   };
 
-  const toggleServiceInPackage = (pkgIndex: number, serviceId: string, type: 'include' | 'exclude') => {
-    const newPackages = [...(settings.servicePackages || [])];
-    const pkg = { ...newPackages[pkgIndex] };
-    
-    let included = [...(pkg.includedServices || [])];
-    let excluded = [...(pkg.excludedServices || [])];
-
-    if (type === 'include') {
-      if (included.includes(serviceId)) {
-        included = included.filter(s => s !== serviceId);
-      } else {
-        included.push(serviceId);
-        excluded = excluded.filter(s => s !== serviceId);
-      }
-    } else {
-      if (excluded.includes(serviceId)) {
-        excluded = excluded.filter(s => s !== serviceId);
-      } else {
-        excluded.push(serviceId);
-        included = included.filter(s => s !== serviceId);
-      }
-    }
-
-    pkg.includedServices = included;
-    pkg.excludedServices = excluded;
-    newPackages[pkgIndex] = pkg;
-    onChange({ ...settings, servicePackages: newPackages });
-  };
 
   // Catalog Management
   const addCatalogItem = (type: 'equipment' | 'service') => {
@@ -427,47 +401,125 @@ export function AdminPanel({ settings, onChange }: AdminPanelProps) {
                   </div>
                 </div>
 
-                {/* Included / Excluded Services */}
-                <div className="mt-6 border-t border-gray-200 pt-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">Hizmet Kalemleri (Dahil / Hariç)</h4>
-                  <div className="space-y-2 max-h-64 overflow-y-auto p-3 border border-gray-200 rounded-lg bg-white">
-                    {services.map((service) => {
-                      const isIncluded = pkg.includedServices?.includes(service.id);
-                      const isExcluded = pkg.excludedServices?.includes(service.id);
-                      
-                      return (
-                        <div key={service.id} className="flex items-center justify-between text-sm py-1 border-b border-gray-50 last:border-0">
-                          <span className="text-gray-700">{service.name}</span>
-                          <div className="flex space-x-1">
-                            <button
-                              onClick={() => toggleServiceInPackage(index, service.id, 'include')}
-                              className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                                isIncluded 
-                                  ? 'bg-green-100 text-green-700 font-medium' 
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                              }`}
-                            >
-                              Dahil
-                            </button>
-                            <button
-                              onClick={() => toggleServiceInPackage(index, service.id, 'exclude')}
-                              className={`px-3 py-1 text-xs rounded-md transition-colors ${
-                                isExcluded 
-                                  ? 'bg-red-100 text-red-700 font-medium' 
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                              }`}
-                            >
-                              Hariç
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
               </div>
             ))}
+          </div>
+        </div>
+        )}
+
+        {/* Global Included Services */}
+        {activeTab === 'packages' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium text-gray-900 flex items-center">
+              <Check className="w-5 h-5 mr-2 text-green-500" />
+              Her Pakette Dahil Olan Hizmetler
+            </h3>
+            <p className="text-sm text-gray-500 mt-1">Tüm paketlerde otomatik dahil olan standart hizmetler. Paket kartlarında ve teklifte gösterilir.</p>
+          </div>
+          <div className="space-y-2 mb-4">
+            {(settings.globalIncludedServices || []).map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 bg-green-50/60 border border-green-100 rounded-lg text-sm text-gray-700 group">
+                <span>{item}</span>
+                <button
+                  onClick={() => {
+                    const arr = [...(settings.globalIncludedServices || [])];
+                    arr.splice(idx, 1);
+                    handleChange('globalIncludedServices', arr);
+                  }}
+                  className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <div className="flex gap-2 mt-2">
+            <input
+              type="text"
+              value={newIncluded ?? ''}
+              onChange={(e) => setNewIncluded(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && (newIncluded ?? '').trim()) {
+                  handleChange('globalIncludedServices', [...(settings.globalIncludedServices || []), newIncluded!.trim()]);
+                  setNewIncluded('');
+                }
+              }}
+              placeholder="Hizmet adı yazın ve Enter'a basın..."
+              className="flex-1 rounded-lg border-gray-300 border p-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+            />
+            <button
+              onClick={() => {
+                if ((newIncluded ?? '').trim()) {
+                  handleChange('globalIncludedServices', [...(settings.globalIncludedServices || []), newIncluded!.trim()]);
+                  setNewIncluded('');
+                }
+              }}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center space-x-1"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ekle</span>
+            </button>
+          </div>
+        </div>
+        )}
+
+        {/* Global Excluded Services */}
+        {activeTab === 'packages' && (
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                <List className="w-5 h-5 mr-2 text-red-400" />
+                Genel Olarak Dahil Olmayan Hizmetler
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">Tüm paketlerde kapsam dışı olan ve ayrıca teklif gerektiren işler. Bunlar fiyatlandırmaya dahil edilmez.</p>
+            </div>
+          </div>
+          <div className="space-y-2 mb-4">
+            {(settings.globalExcludedServices || []).map((item, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 bg-red-50/60 border border-red-100 rounded-lg text-sm text-gray-700 group">
+                <span>{item}</span>
+                <button
+                  onClick={() => {
+                    const arr = [...(settings.globalExcludedServices || [])];
+                    arr.splice(idx, 1);
+                    handleChange('globalExcludedServices', arr);
+                  }}
+                  className="text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          {/* New item input */}
+          <div className="flex gap-2 mt-2">
+            <input
+              type="text"
+              value={newExclusion}
+              onChange={(e) => setNewExclusion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newExclusion.trim()) {
+                  handleChange('globalExcludedServices', [...(settings.globalExcludedServices || []), newExclusion.trim()]);
+                  setNewExclusion('');
+                }
+              }}
+              placeholder="Hizmet adı yazın ve Enter'a basın..."
+              className="flex-1 rounded-lg border-gray-300 border p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none"
+            />
+            <button
+              onClick={() => {
+                if (newExclusion.trim()) {
+                  handleChange('globalExcludedServices', [...(settings.globalExcludedServices || []), newExclusion.trim()]);
+                  setNewExclusion('');
+                }
+              }}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center space-x-1"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ekle</span>
+            </button>
           </div>
         </div>
         )}

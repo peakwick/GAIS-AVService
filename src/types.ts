@@ -10,8 +10,6 @@ export interface ServicePackageDef {
   proactiveVisits: number;
   desc: string;
   maxRooms?: number;
-  includedServices?: string[];
-  excludedServices?: string[];
 }
 
 export type CostType = 'free' | 'hourly' | 'monthly' | 'annual' | 'per_unit';
@@ -52,6 +50,7 @@ export interface ConfigState {
   projectName: string;
   locations: ProjectLocation[];
   servicePackage: ServicePackage;
+  selectedAddons: string[];
   incidentVisitsPerYear: number;
   proactiveVisitsPerYear: number;
   billingCycle: BillingCycle;
@@ -91,6 +90,8 @@ export interface AdminSettings {
   adhocMarkupPercentage: number;
   fixedPerCallPrice?: number;
   servicePackages: ServicePackageDef[];
+  globalIncludedServices: string[];
+  globalExcludedServices: string[];
   catalog: CatalogItem[];
   usdExchangeRate: number;
   currency: 'TRY' | 'USD';

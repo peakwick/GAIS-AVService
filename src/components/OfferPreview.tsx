@@ -104,50 +104,50 @@ export function OfferPreview({ config, admin, onChangeConfig, onAdminChange, onS
             </div>
           </div>
 
-          {selectedPackage && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Dahil Olan Hizmetler</h4>
-                <div className="space-y-2">
-                  {(selectedPackage.includedServices || []).map((serviceId, i) => {
-                    const catalogItem = admin.catalog?.find(item => item.id === serviceId);
-                    return (
-                      <div key={`inc-${i}`} className="flex items-start space-x-2 text-sm">
-                        <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                        <span className="text-gray-700">
-                          {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                          {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {(!selectedPackage.includedServices || selectedPackage.includedServices.length === 0) && (
-                    <span className="text-sm text-gray-500 italic">Belirtilmemiş</span>
-                  )}
-                </div>
-              </div>
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Hariç Olan Hizmetler</h4>
-                <div className="space-y-2">
-                  {(selectedPackage.excludedServices || []).map((serviceId, i) => {
-                    const catalogItem = admin.catalog?.find(item => item.id === serviceId);
-                    return (
-                      <div key={`exc-${i}`} className="flex items-start space-x-2 text-sm">
-                        <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-                        <span className="text-gray-500 line-through">
-                          {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                          {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                  {(!selectedPackage.excludedServices || selectedPackage.excludedServices.length === 0) && (
-                    <span className="text-sm text-gray-500 italic">Belirtilmemiş</span>
-                  )}
-                </div>
+
+          {/* Add-ons and Global Exclusions */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-xl border border-gray-100">
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Dahil Olan Hizmetler</h4>
+              <div className="space-y-2">
+                {/* Base included items always in any package */}
+                {(admin.globalIncludedServices || []).map((f, i) => (
+                  <div key={`base-${i}`} className="flex items-start space-x-2 text-sm">
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">{f}</span>
+                  </div>
+                ))}
+                {/* User-selected add-ons */}
+                {(config.selectedAddons || []).map((addonId, i) => {
+                  const catalogItem = admin.catalog?.find(item => item.id === addonId);
+                  if (!catalogItem) return null;
+                  return (
+                    <div key={`addon-${i}`} className="flex items-start space-x-2 text-sm">
+                      <Check className="w-4 h-4 text-indigo-500 mt-0.5 shrink-0" />
+                      <span className="text-gray-700 font-medium">{catalogItem.name}</span>
+                    </div>
+                  );
+                })}
+                {(config.selectedAddons || []).length === 0 && (
+                  <span className="text-xs text-gray-400 italic">Ek hizmet seçilmedi.</span>
+                )}
               </div>
             </div>
-          )}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Kapsam Dışı Hizmetler</h4>
+              <div className="space-y-2">
+                {(admin.globalExcludedServices || []).map((item, i) => (
+                  <div key={`excl-${i}`} className="flex items-start space-x-2 text-sm">
+                    <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                    <span className="text-gray-500">{item}</span>
+                  </div>
+                ))}
+                {(!admin.globalExcludedServices || admin.globalExcludedServices.length === 0) && (
+                  <span className="text-xs text-gray-400 italic">Belirtilmemiş</span>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Pricing */}

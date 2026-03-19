@@ -64,24 +64,22 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings) {
 
   let fixedServiceCost = 0;
 
-  // Add costs from included services in the selected package
-  const selectedPkg = admin.servicePackages?.find(p => p.id === config.servicePackage);
-  if (selectedPkg && selectedPkg.includedServices) {
-    selectedPkg.includedServices.forEach(srvId => {
-      const item = admin.catalog?.find(c => c.id === srvId);
-      if (!item) return;
+  // Add costs from user-selected add-on services ("toppings")
+  const selectedAddons = config.selectedAddons || [];
+  selectedAddons.forEach(srvId => {
+    const item = admin.catalog?.find(c => c.id === srvId);
+    if (!item) return;
 
-      if (item.costType === 'hourly') {
-        proactiveHours += item.costValue; // Add to proactive/service hours
-      } else if (item.costType === 'monthly') {
-        fixedServiceCost += item.costValue * 12;
-      } else if (item.costType === 'annual') {
-        fixedServiceCost += item.costValue;
-      } else if (item.costType === 'per_unit') {
-        fixedServiceCost += item.costValue * (item.unitCount || 1);
-      }
-    });
-  }
+    if (item.costType === 'hourly') {
+      proactiveHours += item.costValue;
+    } else if (item.costType === 'monthly') {
+      fixedServiceCost += item.costValue * 12;
+    } else if (item.costType === 'annual') {
+      fixedServiceCost += item.costValue;
+    } else if (item.costType === 'per_unit') {
+      fixedServiceCost += item.costValue * (item.unitCount || 1);
+    }
+  });
 
   // 5. Total Hours
   const totalAnnualHours = totalEquipmentHours + totalVisitHours + proactiveHours;

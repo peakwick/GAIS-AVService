@@ -142,33 +142,29 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
                 </div>
               </div>
 
-              <div className="space-y-2 mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Hizmetler</h4>
-                {(pkg.includedServices || []).map((serviceId, i) => {
-                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
-                  return (
-                    <div key={`inc-${i}`} className="flex items-start space-x-2 text-sm">
-                      <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
-                      <span className="text-gray-700">
-                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                      </span>
-                    </div>
-                  );
-                })}
-                {(pkg.excludedServices || []).map((serviceId, i) => {
-                  const catalogItem = adminSettings.catalog?.find(item => item.id === serviceId);
-                  return (
-                    <div key={`exc-${i}`} className="flex items-start space-x-2 text-sm">
-                      <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
-                      <span className="text-gray-500 line-through">
-                        {catalogItem ? catalogItem.name : 'Bilinmeyen Hizmet'}
-                        {catalogItem?.costType === 'per_unit' && ` (${catalogItem.unitCount || 1} Adet)`}
-                      </span>
-                    </div>
-                  );
-                })}
+              {/* Standard features always included in any package */}
+              <div className="space-y-2 mb-4">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2">Her Pakette Dahil Olan</h4>
+                {(adminSettings.globalIncludedServices || []).map((f, i) => (
+                  <div key={i} className="flex items-start space-x-2 text-sm">
+                    <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
+                    <span className="text-gray-700">{f}</span>
+                  </div>
+                ))}
               </div>
+
+              {/* Global excluded services */}
+              {(adminSettings.globalExcludedServices || []).length > 0 && (
+                <div className="space-y-2 mb-6 pb-4 border-b border-gray-100">
+                  <h4 className="text-sm font-semibold text-gray-500 mb-2">Kapsam Dışı (Tüm Paketler)</h4>
+                  {(adminSettings.globalExcludedServices || []).map((item, i) => (
+                    <div key={i} className="flex items-start space-x-2 text-sm">
+                      <X className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
+                      <span className="text-gray-400">{item}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {warning && (
                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start space-x-2">
@@ -237,6 +233,61 @@ export function ServicePackages({ config, adminSettings, onChange, onAdminChange
           );
         })}
       </div>
+
+      {/* Add-on Services Section */}
+      {(() => {
+        const addonServices = (adminSettings.catalog || []).filter(item => item.type === 'service');
+        if (addonServices.length === 0) return null;
+        const toggleAddon = (id: string) => {
+          const current = config.selectedAddons || [];
+          const next = current.includes(id) ? current.filter(a => a !== id) : [...current, id];
+          onChange({ ...config, selectedAddons: next });
+        };
+        return (
+          <div className="mt-2 bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+            <div className="mb-5">
+              <h3 className="text-lg font-bold text-gray-900 flex items-center">
+                <Settings2 className="w-5 h-5 mr-2 text-indigo-500" />
+                Ek Hizmetler (Add-ons)
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">Seçtiğiniz pakete eklemek istediğiniz ek hizmetleri işaretleyin. Seçiminiz fiyata otomatik yansıyacaktır.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {addonServices.map((service) => {
+                const isSelected = (config.selectedAddons || []).includes(service.id);
+                return (
+                  <div
+                    key={service.id}
+                    onClick={() => toggleAddon(service.id)}
+                    className={`cursor-pointer rounded-xl border-2 p-4 transition-all flex items-start space-x-3 ${
+                      isSelected
+                        ? 'border-indigo-500 bg-indigo-50'
+                        : 'border-gray-200 bg-gray-50 hover:border-indigo-200 hover:bg-white'
+                    }`}
+                  >
+                    <div className={`mt-0.5 w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 transition-colors ${
+                      isSelected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300 bg-white'
+                    }`}>
+                      {isSelected && <Check className="w-3 h-3 text-white" />}
+                    </div>
+                    <div>
+                      <p className={`text-sm font-semibold leading-tight ${isSelected ? 'text-indigo-900' : 'text-gray-800'}`}>{service.name}</p>
+                      {service.description && (
+                        <p className="text-xs text-gray-500 mt-0.5">{service.description}</p>
+                      )}
+                      {service.costType !== 'free' && service.costValue > 0 && (
+                        <p className="text-xs font-medium text-indigo-600 mt-1">
+                          +{service.costValue} {service.costType === 'hourly' ? 'sa/yıl' : `₺/${service.costType === 'monthly' ? 'ay' : 'yıl'}`}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
