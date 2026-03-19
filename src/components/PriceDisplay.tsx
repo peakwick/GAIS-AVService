@@ -1,16 +1,18 @@
 import React from 'react';
-import { AdminSettings } from '../types';
+import { AdminSettings, GeneralSettings } from '../types';
 
 interface PriceDisplayProps {
   amount: number;
   adminSettings: AdminSettings;
+  generalSettings: GeneralSettings;
   onAdminChange?: (settings: AdminSettings) => void;
+  onGeneralChange?: (settings: GeneralSettings) => void;
   className?: string;
 }
 
-export function PriceDisplay({ amount, adminSettings, onAdminChange, className = '' }: PriceDisplayProps) {
-  const isUSD = adminSettings.currency === 'USD';
-  const displayAmount = isUSD ? amount / (adminSettings.usdExchangeRate || 1) : amount;
+export function PriceDisplay({ amount, adminSettings, generalSettings, onAdminChange, onGeneralChange, className = '' }: PriceDisplayProps) {
+  const isUSD = generalSettings.currency === 'USD';
+  const displayAmount = isUSD ? amount / (generalSettings.usdExchangeRate || 1) : amount;
   
   const formattedPrice = new Intl.NumberFormat(isUSD ? 'en-US' : 'tr-TR', { 
     style: 'currency', 
@@ -20,9 +22,9 @@ export function PriceDisplay({ amount, adminSettings, onAdminChange, className =
 
   const toggleCurrency = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onAdminChange) {
-      onAdminChange({
-        ...adminSettings,
+    if (onGeneralChange) {
+      onGeneralChange({
+        ...generalSettings,
         currency: isUSD ? 'TRY' : 'USD'
       });
     }

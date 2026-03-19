@@ -49,7 +49,8 @@ export interface ProjectLocation {
   id: string;
   name: string;
   city: Location;
-  rooms: Room[];
+  rooms?: Room[];
+  equipment?: Equipment[]; // For product-based categories like Zebra
 }
 
 export interface SelectedAddon {
@@ -106,17 +107,22 @@ export interface CalculatedCosts {
   };
 }
 
-export interface AdminSettings {
+export interface GeneralSettings {
   techMonthlySalary: number;
   techMonthlyOverhead: number;
   workingDaysPerMonth: number;
-  basePreventativeVisitHours: number;
-  remoteSupportBaseHours: number;
-  remoteSupportHoursPerRoom: number;
+  usdExchangeRate: number;
   fuelCostPerVisit: number;
   parkingCostPerVisit: number;
   locationMultiplier: Record<Location, number>;
   billingCycleMultiplier: Record<BillingCycle, number>;
+  currency: 'TRY' | 'USD';
+}
+
+export interface AdminSettings {
+  basePreventativeVisitHours: number;
+  remoteSupportBaseHours: number;
+  remoteSupportHoursPerRoom: number;
   scaleDiscountThreshold: number;
   scaleDiscountRatePerRoom: number;
   scaleMaxDiscount: number;
@@ -129,6 +135,4 @@ export interface AdminSettings {
   globalExcludedServices: string[];
   defaultCustomConditions: string;
   catalog: CatalogItem[];
-  usdExchangeRate: number;
-  currency: 'TRY' | 'USD';
 }

@@ -8,62 +8,64 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings, genera
   // 2. Calculate Total Equipment Maintenance Hours and Fixed Costs per year
   let totalEquipmentHours = 0;
   let fixedEquipmentCost = 0;
-  let totalRooms = 0;
+  let totalDevices = 0;
   let weightedMultiplierSum = 0;
   let rawTotalEquipmentHours = 0;
 
   config.locations.forEach(loc => {
     const locMultiplier = general.locationMultiplier[loc.city] || 1.0;
-    totalRooms += loc.rooms.length;
-    weightedMultiplierSum += loc.rooms.length * locMultiplier;
-
+    
     let locEqHours = 0;
-    loc.rooms.forEach(room => {
-      room.equipment.forEach(eq => {
-        const item = admin.catalog?.find(c => c.id === eq.catalogId);
-        if (!item) return;
+    let locDeviceCount = 0;
 
-        if (item.costType === 'hourly') {
-          locEqHours += item.costValue * eq.quantity;
-        } else if (item.costType === 'monthly') {
-          fixedEquipmentCost += item.costValue * 12 * eq.quantity;
-        } else if (item.costType === 'annual') {
-          fixedEquipmentCost += item.costValue * eq.quantity;
-        }
-      });
+    // Zebra uses direct equipment list on location
+    (loc.equipment || []).forEach(eq => {
+      const item = admin.catalog?.find(c => c.id === eq.catalogId);
+      if (!item) return;
+
+      locDeviceCount += eq.quantity;
+
+      if (item.costType === 'hourly') {
+        locEqHours += item.costValue * eq.quantity;
+      } else if (item.costType === 'monthly') {
+        fixedEquipmentCost += item.costValue * 12 * eq.quantity;
+      } else if (item.costType === 'annual') {
+        fixedEquipmentCost += item.costValue * eq.quantity;
+      }
     });
 
+    totalDevices += locDeviceCount;
+    weightedMultiplierSum += locDeviceCount * locMultiplier;
     rawTotalEquipmentHours += locEqHours;
 
-    // Apply Economy of Scale discount to this location's equipment hours
+    // Apply Economy of Scale discount to this location's equipment hours based on device count
     let scaleMultiplier = 1.0;
-    if (admin.scaleDiscountThreshold && admin.scaleDiscountThreshold > 0 && loc.rooms.length > admin.scaleDiscountThreshold) {
-      const extraRooms = loc.rooms.length - admin.scaleDiscountThreshold;
-      let discount = extraRooms * (admin.scaleDiscountRatePerRoom || 0);
+    if (admin.scaleDiscountThreshold && admin.scaleDiscountThreshold > 0 && locDeviceCount > admin.scaleDiscountThreshold) {
+      const extraDevices = locDeviceCount - admin.scaleDiscountThreshold;
+      let discount = extraDevices * (admin.scaleDiscountRatePerRoom || 0); // Using same field name for per-unit discount
       if (admin.scaleMaxDiscount && discount > admin.scaleMaxDiscount) {
         discount = admin.scaleMaxDiscount;
       }
-      scaleMultiplier = Math.max(0.1, 1 - (discount / 100)); // Max 90% discount safety limit
+      scaleMultiplier = Math.max(0.1, 1 - (discount / 100)); 
     }
 
     totalEquipmentHours += (locEqHours * scaleMultiplier);
   });
 
   const scaleDiscountHours = rawTotalEquipmentHours - totalEquipmentHours;
-
-  const avgLocMultiplier = totalRooms > 0 ? weightedMultiplierSum / totalRooms : 1.0;
+  const avgLocMultiplier = totalDevices > 0 ? weightedMultiplierSum / totalDevices : 1.0;
 
   // 3. Calculate Preventative Visit Hours per year
-  // Base hours for a visit + time to check equipment
-  const hoursPerVisit = admin.basePreventativeVisitHours + (totalEquipmentHours * 0.2); // Assume checking takes 20% of full maintenance time
+  const hoursPerVisit = admin.basePreventativeVisitHours + (totalEquipmentHours * 0.1); // Slightly lower overhead for Zebra checkups
   const totalVisits = (config.incidentVisitsPerYear || 0) + (config.proactiveVisitsPerYear || 0);
   const totalVisitHours = totalVisits * hoursPerVisit;
 
   // 4. Proactive Maintenance & Service Catalog Costs
-  let proactiveHours = admin.remoteSupportBaseHours + (totalRooms * admin.remoteSupportHoursPerRoom) + (totalEquipmentHours * 0.05);
+  // For Zebra, we use totalDevices instead of totalRooms for overhead
+  let proactiveHours = admin.remoteSupportBaseHours + (totalDevices * (admin.remoteSupportHoursPerRoom || 0.05)) + (totalEquipmentHours * 0.05);
   let fixedServiceCost = 0;
 
-  // 4b. Add-on Services ("toppings") - Separated for breakdown visibility
+  // 4b. Add-on Services ("toppings")
   let totalAddonBaseCost = 0;
   const addonDetails: AddonDetail[] = [];
   const markupMultiplier = 1 + admin.markupPercentage / 100;
@@ -115,10 +117,8 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings, genera
   let adhocAnnualPrice = 0;
   
   if (admin.adhocCalculationMethod === 'fixed_visit') {
-    // Fixed visit fee for visits + add-on costs with ad-hoc markup
     adhocAnnualPrice = (totalVisits * (admin.fixedPerCallPrice || 0)) + (totalAddonBaseCost * adhocMarkupMultiplier);
   } else {
-    // Markup based logic: apply ad-hoc markup to all base costs
     adhocAnnualPrice = annualBaseCost * adhocMarkupMultiplier;
   }
 
@@ -145,12 +145,10 @@ export function calculateCosts(config: ConfigState, admin: AdminSettings, genera
       totalLogisticsCost,
       fixedEquipmentCost,
       fixedServiceCost,
-      // Costs including markup
       equipmentCost: (totalEquipmentHours * hourlyRate * avgLocMultiplier + fixedEquipmentCost) * markupMultiplier,
       visitCost: totalVisitHours * hourlyRate * avgLocMultiplier * markupMultiplier,
       proactiveCost: (proactiveHours * hourlyRate * avgLocMultiplier + fixedServiceCost) * markupMultiplier,
       logisticsCost: totalLogisticsCost * markupMultiplier,
-      // Add-on specific
       addonCost: totalAddonBaseCost * markupMultiplier,
       addonDetails
     }

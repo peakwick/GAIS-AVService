@@ -1,11 +1,11 @@
-import React from 'react';
-import { ConfigState, Room, Equipment, AdminSettings, ProjectLocation } from '../../types';
+import { ConfigState, Room, Equipment, AdminSettings, ProjectLocation, GeneralSettings } from '../../types';
 import { LOCATIONS, BILLING_CYCLES } from '../../constants/avConstants';
 import { Plus, Trash2, Monitor, Mic, Video, Settings, Speaker, Box, Wrench, MapPin } from 'lucide-react';
 
 interface AVConfiguratorProps {
   config: ConfigState;
   adminSettings: AdminSettings;
+  generalSettings: GeneralSettings;
   onChange: (config: ConfigState) => void;
 }
 
@@ -22,7 +22,7 @@ const getIconForType = (iconName?: string) => {
   }
 };
 
-export function AVConfigurator({ config, adminSettings, onChange }: AVConfiguratorProps) {
+export function AVConfigurator({ config, adminSettings, generalSettings, onChange }: AVConfiguratorProps) {
   const updateField = (field: keyof ConfigState, value: any) => {
     onChange({ ...config, [field]: value });
   };

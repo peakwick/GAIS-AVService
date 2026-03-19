@@ -1,5 +1,5 @@
 import React from 'react';
-import { ConfigState, AdminSettings, ServicePackage } from '../../types';
+import { ConfigState, AdminSettings, ServicePackage, GeneralSettings } from '../../types';
 import { BILLING_CYCLES } from '../../constants/avConstants';
 import { calculatePackageCost, calculateCosts } from '../../utils/avCalculations';
 import { Package, CheckCircle2, AlertCircle, Settings2, Check, X, Circle, AlertTriangle, Calculator } from 'lucide-react';
@@ -8,12 +8,14 @@ import { PriceDisplay } from '../PriceDisplay';
 interface AVServicePackagesProps {
   config: ConfigState;
   adminSettings: AdminSettings;
+  generalSettings: GeneralSettings;
   onChange: (config: ConfigState) => void;
   onAdminChange?: (settings: AdminSettings) => void;
+  onGeneralChange?: (settings: GeneralSettings) => void;
   onShowBreakdown?: (config: ConfigState) => void;
 }
 
-export function AVServicePackages({ config, adminSettings, onChange, onAdminChange, onShowBreakdown }: AVServicePackagesProps) {
+export function AVServicePackages({ config, adminSettings, generalSettings, onChange, onAdminChange, onGeneralChange, onShowBreakdown }: AVServicePackagesProps) {
   const updateField = (field: keyof ConfigState, value: any) => {
     onChange({ ...config, [field]: value });
   };
@@ -57,7 +59,7 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {(adminSettings.servicePackages || []).map((pkg) => {
-          const costs = calculatePackageCost(config, adminSettings, pkg.id);
+          const costs = calculatePackageCost(config, adminSettings, pkg.id, generalSettings);
           const isSelected = config.servicePackage === pkg.id;
           
           // Warning logic based on room count
@@ -194,18 +196,18 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
               <div className="pt-4 border-t border-gray-200/60 mt-auto">
                 <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Tahmini Yıllık Fiyat</p>
                 <p className={`text-2xl font-bold ${isSelected ? 'text-indigo-700' : 'text-gray-900'}`}>
-                  <PriceDisplay amount={costs.annualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                  <PriceDisplay amount={costs.annualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
                 </p>
 
                 {(costs.adhocAnnualPrice || 0) > costs.annualPrice && (
                   <div className="mt-4 bg-green-50/60 border border-green-100 rounded-lg p-3 text-xs">
                     <div className="flex justify-between items-center text-gray-500 mb-1.5">
                       <span>Per-Call Anlaşmasız Fiyat:</span>
-                      <span className="line-through"><PriceDisplay amount={costs.adhocAnnualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                      <span className="line-through"><PriceDisplay amount={costs.adhocAnnualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                     </div>
                     <div className="flex justify-between items-center text-green-700 font-bold mb-2 pb-2 border-b border-green-200/50">
                       <span>Bu Paketle Kazancınız:</span>
-                      <span><PriceDisplay amount={costs.adhocAnnualPrice - costs.annualPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                       <span><PriceDisplay amount={costs.adhocAnnualPrice - costs.annualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                     </div>
                     <p className="text-[10px] text-green-800/80 leading-snug">
                       * Per-Call hizmetler anlık olarak sadece arızalı cihaza müdahaleyi kapsar. Bu bakım paketi ise <strong>tüm ekipman envanterinizi</strong> ve yukarıdaki <strong>ek hizmetleri</strong> garanti altına alır.
@@ -221,30 +223,30 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
                 >
                   <div className="flex justify-between text-gray-600">
                     <span>Cihaz İşçiliği ({costs.breakdown.equipmentHours.toFixed(1)}s):</span>
-                    <span className="font-medium"><PriceDisplay amount={costs.breakdown.equipmentCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                    <span className="font-medium"><PriceDisplay amount={costs.breakdown.equipmentCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Ziyaret / Yol ({costs.breakdown.visitHours.toFixed(1)}s):</span>
-                    <span className="font-medium"><PriceDisplay amount={costs.breakdown.visitCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                    <span className="font-medium"><PriceDisplay amount={costs.breakdown.visitCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                   </div>
                   {costs.breakdown.proactiveHours > 0 && (
                     <div className="flex justify-between text-gray-600">
                       <span>Uzaktan Destek ({costs.breakdown.proactiveHours.toFixed(1)}s):</span>
-                      <span className="font-medium"><PriceDisplay amount={costs.breakdown.proactiveCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                      <span className="font-medium"><PriceDisplay amount={costs.breakdown.proactiveCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                     </div>
                   )}
 
                   {costs.breakdown.logisticsCost > 0 && (
                     <div className="flex justify-between text-gray-600">
                       <span>Lojistik (Yakıt/Otopark):</span>
-                      <span className="font-medium"><PriceDisplay amount={costs.breakdown.logisticsCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                      <span className="font-medium"><PriceDisplay amount={costs.breakdown.logisticsCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                     </div>
                   )}
 
                   {costs.breakdown.addonCost > 0 && (
                     <div className="flex justify-between text-indigo-600 font-semibold">
                       <span>Ek Hizmetler (Add-ons):</span>
-                      <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={adminSettings} onAdminChange={onAdminChange} /></span>
+                      <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
                     </div>
                   )}
                   
@@ -264,10 +266,10 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
         const addonServices = (adminSettings.catalog || []).filter(item => item.type === 'service');
         if (addonServices.length === 0) return null;
 
-        const costs = calculateCosts(config, adminSettings);
-        const hourlyRate = (adminSettings.techMonthlySalary + adminSettings.techMonthlyOverhead) / adminSettings.workingDaysPerMonth / 8;
+        const costs = calculateCosts(config, adminSettings, generalSettings);
+        const hourlyRate = (generalSettings.techMonthlySalary + generalSettings.techMonthlyOverhead) / generalSettings.workingDaysPerMonth / 8;
         const totalRooms = config.locations.reduce((sum, loc) => sum + loc.rooms.length, 0);
-        const weightedMultiplierSum = config.locations.reduce((sum, loc) => sum + loc.rooms.length * (adminSettings.locationMultiplier[loc.city] || 1.0), 0);
+        const weightedMultiplierSum = config.locations.reduce((sum, loc) => sum + loc.rooms.length * (generalSettings.locationMultiplier[loc.city] || 1.0), 0);
         const avgLocMultiplier = totalRooms > 0 ? weightedMultiplierSum / totalRooms : 1.0;
         const markupMultiplier = 1 + adminSettings.markupPercentage / 100;
 
@@ -351,13 +353,13 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
                         <div>
                           <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Birim Maliyet</div>
                           <div className="text-xs text-gray-400 font-medium">
-                            <PriceDisplay amount={baseCost} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                            <PriceDisplay amount={baseCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
                           </div>
                         </div>
                         <div>
                           <div className="text-[10px] text-gray-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Anlaşmasız Fiyat</div>
                           <div className="text-xs text-gray-400 font-medium">
-                            <PriceDisplay amount={adhocPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                            <PriceDisplay amount={adhocPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
                           </div>
                         </div>
                       </div>
@@ -365,7 +367,7 @@ export function AVServicePackages({ config, adminSettings, onChange, onAdminChan
                       <div className="flex flex-col items-end">
                         <div className="text-[10px] text-indigo-400 font-medium uppercase tracking-wider mb-0.5 whitespace-nowrap">Teklif Fiyatı</div>
                         <div className="text-sm font-bold text-indigo-700">
-                          <PriceDisplay amount={displayPrice} adminSettings={adminSettings} onAdminChange={onAdminChange} />
+                          <PriceDisplay amount={displayPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
                           {service.costType === 'per_unit' && <span className="text-[10px] font-normal text-gray-500 ml-1">/ adet</span>}
                         </div>
                       </div>

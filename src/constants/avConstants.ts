@@ -25,25 +25,9 @@ export const DEFAULT_CATALOG: CatalogItem[] = [
 export const DEFAULT_CUSTOM_CONDITIONS = '1. Bakım ücreti, uzaktan destek ve planlı önleyici ziyaretleri kapsar.\n2. Yedek parçalar bu sözleşmeye dahil değildir.\n3. Proaktif bakım dışındaki acil çağrılar ayrıca faturalandırılacaktır.\n4. Kritik sorunlar için müdahale süresi ertesi iş günüdür (NBD).';
 
 export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
-  techMonthlySalary: 50000,
-  techMonthlyOverhead: 20000,
-  workingDaysPerMonth: 22,
   basePreventativeVisitHours: 2.0,
   remoteSupportBaseHours: 10,
   remoteSupportHoursPerRoom: 2,
-  fuelCostPerVisit: 500,
-  parkingCostPerVisit: 200,
-  locationMultiplier: {
-    'İstanbul': 1.0,
-    'Ankara': 1.1,
-    'İzmir': 1.1,
-    'Diğer': 1.5,
-  },
-  billingCycleMultiplier: {
-    'Aylık': 1.1,
-    'Üç Aylık': 1.05,
-    'Yıllık': 1.0,
-  },
   scaleDiscountThreshold: 5,
   scaleDiscountRatePerRoom: 2,
   scaleMaxDiscount: 20,
@@ -52,8 +36,6 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   adhocMarkupPercentage: 100,
   fixedPerCallPrice: 500,
   catalog: DEFAULT_CATALOG,
-  usdExchangeRate: 35.0,
-  currency: 'TRY',
   servicePackages: [
     { 
       id: '5_visits', 

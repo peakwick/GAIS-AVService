@@ -1,83 +1,128 @@
 import React, { useState, useEffect } from 'react';
-import { AVConfigurator as Configurator } from './components/av/AVConfigurator';
-import { AVAdminPanel as AdminPanel } from './components/av/AVAdminPanel';
-import { AVOfferPreview as OfferPreview } from './components/av/AVOfferPreview';
-import { AVServicePackages as ServicePackages } from './components/av/AVServicePackages';
-import { AVCalculationModal as CalculationModal } from './components/av/AVCalculationModal';
-import { AdminSettings, ConfigState, ServiceType } from './types';
-import { DEFAULT_ADMIN_SETTINGS, DEFAULT_CONFIG_STATE, SERVICE_TYPES } from './constants/avConstants';
-import { Settings, Sliders, FileText, LayoutDashboard, Package, Layers, ShieldCheck, Cpu, Wifi, Wrench, Zap, Video, Percent } from 'lucide-react';
+// AV Components
+import { AVConfigurator } from './components/av/AVConfigurator';
+import { AVAdminPanel } from './components/av/AVAdminPanel';
+import { AVOfferPreview } from './components/av/AVOfferPreview';
+import { AVServicePackages } from './components/av/AVServicePackages';
+import { AVCalculationModal } from './components/av/AVCalculationModal';
+// Zebra Components
+import { ZebraConfigurator } from './components/zebra/ZebraConfigurator';
+import { ZebraAdminPanel } from './components/zebra/ZebraAdminPanel';
+import { ZebraOfferPreview } from './components/zebra/ZebraOfferPreview';
+import { ZebraServicePackages } from './components/zebra/ZebraServicePackages';
+import { ZebraCalculationModal } from './components/zebra/ZebraCalculationModal';
 
-type Tab = 'packages' | 'admin';
+import { AdminSettings, ConfigState, ServiceType, GeneralSettings } from './types';
+import { DEFAULT_ADMIN_SETTINGS as AV_DEFAULTS, DEFAULT_CONFIG_STATE as AV_CONFIG_DEFAULTS, SERVICE_TYPES } from './constants/avConstants';
+import { DEFAULT_ZEBRA_ADMIN_SETTINGS as ZEBRA_DEFAULTS, DEFAULT_ZEBRA_CONFIG_STATE as ZEBRA_CONFIG_DEFAULTS } from './constants/zebraConstants';
+import { DEFAULT_GENERAL_SETTINGS } from './constants/generalConstants';
+import { Settings, LayoutDashboard, Zap, Video, Cpu, Wrench, Percent, Wifi, Globe } from 'lucide-react';
+import { GeneralAdminPanel } from './components/GeneralAdminPanel.tsx';
 
 export default function App() {
   const [showSystemSettings, setShowSystemSettings] = useState(false);
+  const [showGeneralSettings, setShowGeneralSettings] = useState(false);
   const [isCalcModalOpen, setIsCalcModalOpen] = useState(false);
   const [modalConfig, setModalConfig] = useState<ConfigState | null>(null);
   
-  // Load admin settings from local storage or use defaults
-  const [adminSettings, setAdminSettings] = useState<AdminSettings>(() => {
+  // 1. Service Type State
+  const [selectedServiceType, setSelectedServiceType] = useState<ServiceType>(() => {
+    const saved = localStorage.getItem('last_selected_service_type');
+    return (saved as ServiceType) || SERVICE_TYPES[0];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('last_selected_service_type', selectedServiceType);
+  }, [selectedServiceType]);
+
+  // 1.5 General Settings
+  const [generalSettings, setGeneralSettings] = useState<GeneralSettings>(() => {
+    const saved = localStorage.getItem('gais_general_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...DEFAULT_GENERAL_SETTINGS, ...parsed };
+      } catch (e) { return DEFAULT_GENERAL_SETTINGS; }
+    }
+    return DEFAULT_GENERAL_SETTINGS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('gais_general_settings', JSON.stringify(generalSettings));
+  }, [generalSettings]);
+
+  // 2. AV Admin Settings
+  const [avAdminSettings, setAvAdminSettings] = useState<AdminSettings>(() => {
     const saved = localStorage.getItem('av_admin_settings');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        
-        // Migration logic for older versions
-        if (!parsed.catalog) {
-          parsed.catalog = [...DEFAULT_ADMIN_SETTINGS.catalog];
-          
-          // Migrate old servicePool
-          if (parsed.servicePool) {
-            parsed.servicePool.forEach((s: string) => {
-              if (!parsed.catalog.find((c: any) => c.name === s)) {
-                parsed.catalog.push({
-                  id: `srv_migrated_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-                  type: 'service',
-                  name: s,
-                  description: '',
-                  costType: 'free',
-                  costValue: 0,
-                  icon: 'tool'
-                });
-              }
-            });
-          }
-          
-          // Migrate old timeEstimatesHours
-          if (parsed.timeEstimatesHours) {
-            Object.entries(parsed.timeEstimatesHours).forEach(([key, val]) => {
-              const eqId = `eq_${key.toLowerCase()}`;
-              const existing = parsed.catalog.find((c: any) => c.id === eqId || (c.id === 'eq_vc' && key === 'VideoConferencing'));
-              if (existing) {
-                existing.costValue = val as number;
-              }
-            });
-          }
-        }
-
-        // Merge with defaults to ensure new properties exist
-        return { 
-          ...DEFAULT_ADMIN_SETTINGS, 
-          ...parsed,
-          servicePackages: parsed.servicePackages || DEFAULT_ADMIN_SETTINGS.servicePackages,
-          catalog: parsed.catalog || DEFAULT_ADMIN_SETTINGS.catalog
-        };
-      } catch (e) {
-        return DEFAULT_ADMIN_SETTINGS;
-      }
+        return { ...AV_DEFAULTS, ...parsed };
+      } catch (e) { return AV_DEFAULTS; }
     }
-    return DEFAULT_ADMIN_SETTINGS;
+    return AV_DEFAULTS;
   });
 
-  // Save admin settings to local storage when they change
   useEffect(() => {
-    localStorage.setItem('av_admin_settings', JSON.stringify(adminSettings));
-  }, [adminSettings]);
+    localStorage.setItem('av_admin_settings', JSON.stringify(avAdminSettings));
+  }, [avAdminSettings]);
 
-  const [configState, setConfigState] = useState<ConfigState>(DEFAULT_CONFIG_STATE);
+  // 3. Zebra Admin Settings
+  const [zebraAdminSettings, setZebraAdminSettings] = useState<AdminSettings>(() => {
+    const saved = localStorage.getItem('zebra_admin_settings');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return { ...ZEBRA_DEFAULTS, ...parsed };
+      } catch (e) { return ZEBRA_DEFAULTS; }
+    }
+    return ZEBRA_DEFAULTS;
+  });
 
+  useEffect(() => {
+    localStorage.setItem('zebra_admin_settings', JSON.stringify(zebraAdminSettings));
+  }, [zebraAdminSettings]);
+
+  // 4. Config States (User Project Data)
+  const [avConfig, setAvConfig] = useState<ConfigState>(() => {
+    const saved = localStorage.getItem('av_config_state');
+    if (saved) {
+      try { 
+        const parsed = JSON.parse(saved);
+        return { ...AV_CONFIG_DEFAULTS, ...parsed };
+      } catch (e) { return AV_CONFIG_DEFAULTS; }
+    }
+    return AV_CONFIG_DEFAULTS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('av_config_state', JSON.stringify(avConfig));
+  }, [avConfig]);
+
+  const [zebraConfig, setZebraConfig] = useState<ConfigState>(() => {
+    const saved = localStorage.getItem('zebra_config_state');
+    if (saved) {
+      try { 
+        const parsed = JSON.parse(saved);
+        return { ...ZEBRA_CONFIG_DEFAULTS, ...parsed };
+      } catch (e) { return ZEBRA_CONFIG_DEFAULTS; }
+    }
+    return ZEBRA_CONFIG_DEFAULTS;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('zebra_config_state', JSON.stringify(zebraConfig));
+  }, [zebraConfig]);
+
+  // Helpers to get current active states
+  const isAVMaintenance = selectedServiceType === 'AV Yıllık Bakım Hizmeti';
+  const isZebraMaintenance = selectedServiceType === 'Zebra Yıllık Bakım';
+
+  const currentAdmin = isAVMaintenance ? avAdminSettings : (isZebraMaintenance ? zebraAdminSettings : avAdminSettings);
+  const currentConfig = isAVMaintenance ? avConfig : (isZebraMaintenance ? zebraConfig : avConfig);
+  
   const openCalcModal = (config?: ConfigState) => {
-    setModalConfig(config || configState);
+    setModalConfig(config || currentConfig);
     setIsCalcModalOpen(true);
   };
 
@@ -101,21 +146,41 @@ export default function App() {
                 <button
                   key={type}
                   onClick={() => {
-                    setConfigState({ ...configState, selectedServiceType: type as ServiceType });
-                    setShowSystemSettings(false); // Reset settings view on module change
+                    setSelectedServiceType(type as ServiceType);
+                    setShowSystemSettings(false);
                   }}
                   className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                    configState.selectedServiceType === type 
+                    selectedServiceType === type 
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' 
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  {type.includes('AV') && <Video className={`w-4 h-4 ${configState.selectedServiceType === type ? 'text-white' : 'text-indigo-400'}`} />}
-                  {type.includes('Zebra') && <Zap className={`w-4 h-4 ${configState.selectedServiceType === type ? 'text-white' : 'text-amber-500'}`} />}
-                  {type.includes('IT') && <Cpu className={`w-4 h-4 ${configState.selectedServiceType === type ? 'text-white' : 'text-blue-500'}`} />}
+                  {type.includes('AV') && <Video className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-indigo-400'}`} />}
+                  {type.includes('Zebra') && <Zap className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-amber-500'}`} />}
+                  {type.includes('IT') && <Cpu className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-blue-500'}`} />}
                   <span className="truncate">{type}</span>
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 mb-3">Sistem</p>
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  setShowGeneralSettings(true);
+                  setShowSystemSettings(false);
+                }}
+                className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs font-medium transition-all ${
+                  showGeneralSettings 
+                    ? 'bg-gray-900 text-white shadow-md' 
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                }`}
+              >
+                <Globe className={`w-4 h-4 ${showGeneralSettings ? 'text-white' : 'text-emerald-500'}`} />
+                <span>Genel Ayarlar</span>
+              </button>
             </div>
           </div>
         </nav>
@@ -139,13 +204,16 @@ export default function App() {
               <nav className="flex items-center space-x-2 text-xs font-medium text-gray-400 mb-2">
                 <span>Modüller</span>
                 <span>/</span>
-                <span className="text-gray-600">{configState.selectedServiceType}</span>
+                <span className="text-gray-600">{selectedServiceType}</span>
               </nav>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{configState.selectedServiceType}</h1>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{selectedServiceType}</h1>
             </div>
             
             <button
-              onClick={() => setShowSystemSettings(!showSystemSettings)}
+              onClick={() => {
+                setShowSystemSettings(!showSystemSettings);
+                setShowGeneralSettings(false);
+              }}
               className={`flex items-center space-x-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
                 showSystemSettings 
                   ? 'bg-gray-900 text-white border-gray-900 shadow-lg' 
@@ -157,73 +225,55 @@ export default function App() {
             </button>
           </div>
 
-          {showSystemSettings ? (
+          {showGeneralSettings ? (
             <div className="animate-in slide-in-from-bottom-4 duration-500">
-              {configState.selectedServiceType === 'AV Yıllık Bakım Hizmeti' ? (
-                <AdminPanel settings={adminSettings} onChange={setAdminSettings} />
-              ) : (
+              <GeneralAdminPanel settings={generalSettings} onChange={setGeneralSettings} />
+            </div>
+          ) : showSystemSettings ? (
+            <div className="animate-in slide-in-from-bottom-4 duration-500">
+              {isAVMaintenance && <AVAdminPanel settings={avAdminSettings} generalSettings={generalSettings} onChange={setAvAdminSettings} />}
+              {isZebraMaintenance && <ZebraAdminPanel settings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraAdminSettings} />}
+              {!isAVMaintenance && !isZebraMaintenance && (
                 <div className="min-h-[50vh] flex flex-col items-center justify-center text-center p-12 bg-white rounded-[2rem] border-2 border-dashed border-gray-200 shadow-sm">
                   <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6">
                     <Settings className="w-8 h-8 text-gray-300 animate-pulse" />
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-2">Ayarlar Modülü Hazırlanıyor</h3>
-                  <p className="text-gray-500 max-w-sm">
-                    {configState.selectedServiceType} için özel çarpanlar, birim maliyetler ve katalog yönetimi yakında burada olacak.
-                  </p>
+                  <p className="text-gray-500 max-w-sm">{selectedServiceType} için ayarlar yakında burada olacak.</p>
                 </div>
               )}
             </div>
           ) : (
             <>
-              {configState.selectedServiceType === 'AV Yıllık Bakım Hizmeti' ? (
+              {isAVMaintenance && (
                 <div className="space-y-16 animate-in fade-in duration-500">
-                  <Configurator config={configState} adminSettings={adminSettings} onChange={setConfigState} />
-                  
+                  <AVConfigurator config={avConfig} adminSettings={avAdminSettings} generalSettings={generalSettings} onChange={setAvConfig} />
                   <div className="border-t border-gray-200 pt-16">
-                    <ServicePackages 
-                      config={configState} 
-                      adminSettings={adminSettings} 
-                      onChange={setConfigState} 
-                      onAdminChange={setAdminSettings}
-                      onShowBreakdown={openCalcModal}
-                    />
+                    <AVServicePackages config={avConfig} adminSettings={avAdminSettings} generalSettings={generalSettings} onChange={setAvConfig} onAdminChange={setAvAdminSettings} onShowBreakdown={openCalcModal} />
                   </div>
-
                   <div className="border-t border-gray-200 pt-16">
-                    <OfferPreview 
-                      config={configState} 
-                      admin={adminSettings} 
-                      onChangeConfig={setConfigState} 
-                      onAdminChange={setAdminSettings}
-                      onShowBreakdown={() => openCalcModal()}
-                    />
+                    <AVOfferPreview config={avConfig} admin={avAdminSettings} generalSettings={generalSettings} onChangeConfig={setAvConfig} onAdminChange={setAvAdminSettings} onShowBreakdown={() => openCalcModal()} />
                   </div>
                 </div>
-              ) : (
+              )}
+              {isZebraMaintenance && (
+                <div className="space-y-16 animate-in fade-in duration-500">
+                  <ZebraConfigurator config={zebraConfig} adminSettings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraConfig} />
+                  <div className="border-t border-gray-200 pt-16">
+                    <ZebraServicePackages config={zebraConfig} adminSettings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraConfig} onAdminChange={setZebraAdminSettings} onShowBreakdown={openCalcModal} />
+                  </div>
+                  <div className="border-t border-gray-200 pt-16">
+                    <ZebraOfferPreview config={zebraConfig} admin={zebraAdminSettings} generalSettings={generalSettings} onChangeConfig={setZebraConfig} onAdminChange={setZebraAdminSettings} onShowBreakdown={() => openCalcModal()} />
+                  </div>
+                </div>
+              )}
+              {!isAVMaintenance && !isZebraMaintenance && (
                 <div className="min-h-[70vh] flex flex-col items-center justify-center text-center p-12 bg-white rounded-[2rem] border-2 border-dashed border-gray-200 shadow-sm animate-in zoom-in-95 duration-500">
                   <div className="w-24 h-24 bg-indigo-50 rounded-3xl flex items-center justify-center mb-8 rotate-3">
                     <Wrench className="w-12 h-12 text-indigo-500 animate-pulse" />
                   </div>
-                  <h2 className="text-4xl font-black text-gray-900 mb-4">{configState.selectedServiceType}</h2>
-                  <div className="max-w-md">
-                    <p className="text-xl text-gray-500 mb-10 leading-relaxed">
-                      Bu modül şu anda geliştirme aşamasındadır. Yakında burada kendi özel ayarları ve hesaplama motoruyla hizmet verecektir.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4">
-                      <span className="flex items-center space-x-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold border border-gray-200 shadow-sm">
-                        <LayoutDashboard className="w-4 h-4 text-indigo-500" />
-                        <span>Özel Katalog</span>
-                      </span>
-                      <span className="flex items-center space-x-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold border border-gray-200 shadow-sm">
-                        <Percent className="w-4 h-4 text-amber-500" />
-                        <span>Benzersiz Çarpanlar</span>
-                      </span>
-                      <span className="flex items-center space-x-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-2xl text-sm font-bold border border-gray-200 shadow-sm">
-                        <Wifi className="w-4 h-4 text-blue-500" />
-                        <span>Dinamik Hesaplama</span>
-                      </span>
-                    </div>
-                  </div>
+                  <h2 className="text-4xl font-black text-gray-900 mb-4">{selectedServiceType}</h2>
+                  <p className="text-xl text-gray-500 mb-10 leading-relaxed max-w-md">Bu modül şu anda geliştirme aşamasındadır.</p>
                 </div>
               )}
             </>
@@ -231,14 +281,12 @@ export default function App() {
         </div>
       </main>
 
-      {/* Calculation Modal */}
-      {modalConfig && (
-        <CalculationModal
-          isOpen={isCalcModalOpen}
-          onClose={() => setIsCalcModalOpen(false)}
-          config={modalConfig}
-          admin={adminSettings}
-        />
+      {/* Calculation Modals */}
+      {isCalcModalOpen && modalConfig && isAVMaintenance && (
+        <AVCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={avAdminSettings} general={generalSettings} />
+      )}
+      {isCalcModalOpen && modalConfig && isZebraMaintenance && (
+        <ZebraCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={zebraAdminSettings} general={generalSettings} />
       )}
     </div>
   );
