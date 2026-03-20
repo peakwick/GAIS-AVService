@@ -16,7 +16,7 @@ import { AdminSettings, ConfigState, ServiceType, GeneralSettings } from './type
 import { DEFAULT_ADMIN_SETTINGS as AV_DEFAULTS, DEFAULT_CONFIG_STATE as AV_CONFIG_DEFAULTS, SERVICE_TYPES } from './constants/avConstants';
 import { DEFAULT_ZEBRA_ADMIN_SETTINGS as ZEBRA_DEFAULTS, DEFAULT_ZEBRA_CONFIG_STATE as ZEBRA_CONFIG_DEFAULTS } from './constants/zebraConstants';
 import { DEFAULT_GENERAL_SETTINGS } from './constants/generalConstants';
-import { Settings, LayoutDashboard, Zap, Video, Cpu, Wrench, Percent, Wifi, Globe } from 'lucide-react';
+import { Settings, LayoutDashboard, Zap, Video, Cpu, Wrench, Percent, Wifi, Globe, Printer } from 'lucide-react';
 import { GeneralAdminPanel } from './components/GeneralAdminPanel.tsx';
 
 export default function App() {
@@ -156,9 +156,10 @@ export default function App() {
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
-                  {type.includes('AV') && <Video className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-indigo-400'}`} />}
-                  {type.includes('Zebra') && <Zap className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-amber-500'}`} />}
-                  {type.includes('IT') && <Cpu className={`w-4 h-4 ${selectedServiceType === type ? 'text-white' : 'text-blue-500'}`} />}
+                  {type.includes('AV') && <Video className={`w-4 h-4 ${selectedServiceType === type && !showGeneralSettings ? 'text-white' : 'text-indigo-400'}`} />}
+                  {type.includes('Zebra') && <Zap className={`w-4 h-4 ${selectedServiceType === type && !showGeneralSettings ? 'text-white' : 'text-amber-500'}`} />}
+                  {type.includes('IT') && <Cpu className={`w-4 h-4 ${selectedServiceType === type && !showGeneralSettings ? 'text-white' : 'text-blue-500'}`} />}
+                  {type.includes('Scanner') && <Printer className={`w-4 h-4 ${selectedServiceType === type && !showGeneralSettings ? 'text-white' : 'text-teal-500'}`} />}
                   <span className="truncate">{type}</span>
                 </button>
               ))}

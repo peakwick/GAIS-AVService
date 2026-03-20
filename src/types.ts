@@ -1,12 +1,14 @@
 export type Location = 'İstanbul' | 'Ankara' | 'İzmir' | 'Diğer';
 export type BillingCycle = 'Aylık' | 'Üç Aylık' | 'Yıllık';
-export type ServiceType = 
+export type ServiceType =
   | 'AV Yıllık Bakım Hizmeti'
   | 'AV Kurulum'
   | 'Zebra Yıllık Bakım'
   | 'Zebra Kurulum'
   | 'IT Kurulum'
-  | 'IT Yıllık Bakım';
+  | 'IT Yıllık Bakım'
+  | 'Scanner Yıllık Bakım'
+  | 'Scanner Kurulum';
 export type EquipmentType = 'Screen' | 'VideoConferencing' | 'CeilingMic' | 'AudioDSP' | 'ControlSystem' | 'Other';
 export type ServicePackage = string; // Now dynamic, 'custom' is reserved
 

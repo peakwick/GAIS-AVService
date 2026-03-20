@@ -99,5 +99,7 @@ export const SERVICE_TYPES = [
   'Zebra Yıllık Bakım',
   'Zebra Kurulum',
   'IT Kurulum',
-  'IT Yıllık Bakım'
+  'IT Yıllık Bakım',
+  'Scanner Yıllık Bakım',
+  'Scanner Kurulum'
 ] as const;

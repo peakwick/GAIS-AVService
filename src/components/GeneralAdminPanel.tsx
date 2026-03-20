@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GeneralSettings, Location, BillingCycle } from '../types';
 import { LOCATIONS, BILLING_CYCLES } from '../constants/avConstants';
-import { Users, Clock, MapPin, Percent, Globe } from 'lucide-react';
+import { Users, Clock, MapPin, Percent, Globe, Calculator, FileText } from 'lucide-react';
 
 interface GeneralAdminPanelProps {
   settings: GeneralSettings;
@@ -9,6 +9,8 @@ interface GeneralAdminPanelProps {
 }
 
 export function GeneralAdminPanel({ settings, onChange }: GeneralAdminPanelProps) {
+  const [activeTab, setActiveTab] = useState<'costs' | 'conditions'>('costs');
+
   const handleChange = (field: keyof GeneralSettings, value: any) => {
     onChange({ ...settings, [field]: value });
   };
@@ -33,196 +35,230 @@ export function GeneralAdminPanel({ settings, onChange }: GeneralAdminPanelProps
         <p className="text-gray-500 mt-1">Tüm modüller için ortak olan personel maliyetlerini, döviz kurlarını ve lojistik çarpanlarını buradan yönetin.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
-        {/* Personnel Costs */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <Users className="w-5 h-5 mr-2 text-indigo-500" />
-            Personel Giderleri
-          </h3>
-          <p className="text-sm text-gray-500 mb-6">Teknik ekibin saatlik maliyetini hesaplamak için aylık giderleri girin.</p>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Maaş / Uzman</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
-                <input
-                  type="number"
-                  value={settings.techMonthlySalary || 0}
-                  onChange={(e) => handleChange('techMonthlySalary', Number(e.target.value))}
-                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Yan Haklar vb.</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
-                <input
-                  type="number"
-                  value={settings.techMonthlyOverhead || 0}
-                  onChange={(e) => handleChange('techMonthlyOverhead', Number(e.target.value))}
-                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Çalışılan Gün / Ay</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  value={settings.workingDaysPerMonth || 22}
-                  onChange={(e) => handleChange('workingDaysPerMonth', Number(e.target.value))}
-                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-                <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">Gün</span>
-              </div>
-            </div>
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 mb-8 overflow-x-auto print:hidden">
+        <button
+          onClick={() => setActiveTab('costs')}
+          className={`py-3 px-6 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+            activeTab === 'costs'
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <Calculator className="w-4 h-4" />
+            <span>Maliyet & Fiyatlandırma</span>
           </div>
-          
-          <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-center">
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
-              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Saatlik Maliyet</span>
-              <span className="font-bold text-indigo-700 text-lg">₺{hourlyRate.toFixed(2)}</span>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
-              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Yarım Gün (4 sa)</span>
-              <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 4).toFixed(2)}</span>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
-              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Tam Gün (8 sa)</span>
-              <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 8).toFixed(2)}</span>
-            </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('conditions')}
+          className={`py-3 px-6 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
+            activeTab === 'conditions'
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+          }`}
+        >
+          <div className="flex items-center space-x-2">
+            <FileText className="w-4 h-4" />
+            <span>Sözleşme Şartları</span>
           </div>
-        </div>
-
-        {/* Currency */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <Globe className="w-5 h-5 mr-2 text-indigo-500" />
-            Döviz Kuru
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Dolar Kuru (USD/TRY)</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.usdExchangeRate || 0}
-                  onChange={(e) => handleChange('usdExchangeRate', Number(e.target.value))}
-                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Logistics */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
-            Saha Ziyareti Lojistik Maliyetleri
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ortalama Yakıt Maliyeti (Ziyaret Başına)</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
-                <input
-                  type="number"
-                  value={settings.fuelCostPerVisit || 0}
-                  onChange={(e) => handleChange('fuelCostPerVisit', Number(e.target.value))}
-                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Ortalama Otopark/Yol Maliyeti (Ziyaret Başına)</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
-                <input
-                  type="number"
-                  value={settings.parkingCostPerVisit || 0}
-                  onChange={(e) => handleChange('parkingCostPerVisit', Number(e.target.value))}
-                  className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Location Multipliers */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
-            Konum Çarpanları
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-            {LOCATIONS.map(loc => (
-              <div key={loc}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{loc}</label>
-                <input
-                  type="number"
-                  step="0.1"
-                  value={settings.locationMultiplier[loc]}
-                  onChange={(e) => handleNestedChange('locationMultiplier', loc, Number(e.target.value))}
-                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Billing Cycle Multipliers */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <Clock className="w-5 h-5 mr-2 text-indigo-500" />
-            Ödeme Planı Çarpanları
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {BILLING_CYCLES.map(cycle => (
-              <div key={cycle}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{cycle}</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={settings.billingCycleMultiplier[cycle]}
-                  onChange={(e) => handleNestedChange('billingCycleMultiplier', cycle, Number(e.target.value))}
-                  className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Global Contract Terms */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-            <Globe className="w-5 h-5 mr-2 text-indigo-500" />
-            Varsayılan Sözleşme Şartları
-          </h3>
-          <p className="text-sm text-gray-500 mb-6 underline">
-            Tüm modüllerde (AV, Zebra vb.) yeni oluşturulan tekliflerde varsayılan olarak gelecek özel şartları ve koşulları buradan yönetin.
-          </p>
-          <div className="space-y-4">
-            <textarea
-              value={settings.defaultCustomConditions}
-              onChange={(e) => handleChange('defaultCustomConditions', e.target.value)}
-              rows={10}
-              placeholder="Her maddeyi yeni bir satıra yazın..."
-              className="w-full rounded-xl border-gray-300 border p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none leading-relaxed min-h-[250px]"
-            />
-            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-              <p className="text-xs text-indigo-700 leading-relaxed font-medium">
-                <strong>İpucu:</strong> Buraya yazdığınız maddeler, her yeni teklif oluşturulduğunda otomatik olarak "Özel Şartlar ve Koşullar" bölümüne eklenecektir. Teklif bazlı özel değişiklikleri yine her bir teklifin kendi sayfasından yapabilirsiniz.
-              </p>
-            </div>
-          </div>
-        </div>
+        </button>
       </div>
+
+      {activeTab === 'costs' ? (
+        <div className="grid grid-cols-1 gap-8 animate-in slide-in-from-bottom-4 duration-500">
+          {/* Personnel Costs */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <Users className="w-5 h-5 mr-2 text-indigo-500" />
+              Personel Giderleri
+            </h3>
+            <p className="text-sm text-gray-500 mb-6">Teknik ekibin saatlik maliyetini hesaplamak için aylık giderleri girin.</p>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Maaş / Uzman</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                  <input
+                    type="number"
+                    value={settings.techMonthlySalary || 0}
+                    onChange={(e) => handleChange('techMonthlySalary', Number(e.target.value))}
+                    className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Aylık Yan Haklar vb.</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                  <input
+                    type="number"
+                    value={settings.techMonthlyOverhead || 0}
+                    onChange={(e) => handleChange('techMonthlyOverhead', Number(e.target.value))}
+                    className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Çalışılan Gün / Ay</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={settings.workingDaysPerMonth || 22}
+                    onChange={(e) => handleChange('workingDaysPerMonth', Number(e.target.value))}
+                    className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                  <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">Gün</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-center">
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+                <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Saatlik Maliyet</span>
+                <span className="font-bold text-indigo-700 text-lg">₺{hourlyRate.toFixed(2)}</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+                <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Yarım Gün (4 sa)</span>
+                <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 4).toFixed(2)}</span>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+                <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Tam Gün (8 sa)</span>
+                <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 8).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Currency */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <Globe className="w-5 h-5 mr-2 text-indigo-500" />
+              Döviz Kuru
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Dolar Kuru (USD/TRY)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.usdExchangeRate || 0}
+                    onChange={(e) => handleChange('usdExchangeRate', Number(e.target.value))}
+                    className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Logistics */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2 text-indigo-500" />
+              Saha Ziyareti Lojistik Maliyetleri
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ortalama Yakıt Maliyeti (Ziyaret Başıuna)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                  <input
+                    type="number"
+                    value={settings.fuelCostPerVisit || 0}
+                    onChange={(e) => handleChange('fuelCostPerVisit', Number(e.target.value))}
+                    className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ortalama Otopark/Yol Maliyeti (Ziyaret Başına)</label>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₺</span>
+                  <input
+                    type="number"
+                    value={settings.parkingCostPerVisit || 0}
+                    onChange={(e) => handleChange('parkingCostPerVisit', Number(e.target.value))}
+                    className="pl-8 w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Location Multipliers */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <Percent className="w-5 h-5 mr-2 text-indigo-500" />
+              Konum Çarpanları
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              {LOCATIONS.map(loc => (
+                <div key={loc}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{loc}</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={settings.locationMultiplier[loc]}
+                    onChange={(e) => handleNestedChange('locationMultiplier', loc, Number(e.target.value))}
+                    className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Billing Cycle Multipliers */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <Clock className="w-5 h-5 mr-2 text-indigo-500" />
+              Ödeme Planı Çarpanları
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              {BILLING_CYCLES.map(cycle => (
+                <div key={cycle}>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{cycle}</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.billingCycleMultiplier[cycle]}
+                    onChange={(e) => handleNestedChange('billingCycleMultiplier', cycle, Number(e.target.value))}
+                    className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="animate-in slide-in-from-bottom-4 duration-500">
+          {/* Global Contract Terms */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+              <FileText className="w-5 h-5 mr-2 text-indigo-500" />
+              Varsayılan Sözleşme Şartları
+            </h3>
+            <p className="text-sm text-gray-500 mb-6 font-medium">
+              Tüm modüllerde (AV, Zebra vb.) yeni oluşturulan tekliflerde varsayılan olarak gelecek özel şartları ve koşulları buradan yönetin.
+            </p>
+            <div className="space-y-4">
+              <textarea
+                value={settings.defaultCustomConditions}
+                onChange={(e) => handleChange('defaultCustomConditions', e.target.value)}
+                rows={12}
+                placeholder="Her maddeyi yeni bir satıra yazın..."
+                className="w-full rounded-xl border-gray-300 border p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none leading-relaxed min-h-[350px]"
+              />
+              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                <p className="text-xs text-indigo-700 leading-relaxed font-medium">
+                  <strong>İpucu:</strong> Buraya yazdığınız maddeler, her yeni teklif oluşturulduğunda otomatik olarak "Özel Şartlar ve Koşullar" bölümüne eklenecektir. Teklif bazlı özel değişiklikleri yine her bir teklifin kendi sayfasından yapabilirsiniz.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
