@@ -22,7 +22,6 @@ export const DEFAULT_CATALOG: CatalogItem[] = [
   { id: 'srv_12', type: 'service', name: 'VIP Toplantı Desteği', description: '', costType: 'free', costValue: 0, icon: 'tool' },
 ];
 
-export const DEFAULT_CUSTOM_CONDITIONS = '1. Bakım ücreti, uzaktan destek ve planlı önleyici ziyaretleri kapsar.\n2. Yedek parçalar bu sözleşmeye dahil değildir.\n3. Proaktif bakım dışındaki acil çağrılar ayrıca faturalandırılacaktır.\n4. Kritik sorunlar için müdahale süresi ertesi iş günüdür (NBD).';
 
 export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
   basePreventativeVisitHours: 2.0,
@@ -75,7 +74,6 @@ export const DEFAULT_ADMIN_SETTINGS: AdminSettings = {
     'Elektrik, ağ veya IP atamaları ile ilgili müşteri tarafındaki sorunlar',
     'Arıza dışında ekipman söküm ve montaj işleri',
   ],
-  defaultCustomConditions: DEFAULT_CUSTOM_CONDITIONS,
 };
 
 export const DEFAULT_CONFIG_STATE: ConfigState = {
@@ -90,7 +88,7 @@ export const DEFAULT_CONFIG_STATE: ConfigState = {
   selectedServiceType: 'AV Yıllık Bakım Hizmeti',
   contractStartDate: new Date().toISOString().split('T')[0],
   contractDurationMonths: 12,
-  customConditions: DEFAULT_CUSTOM_CONDITIONS,
+  customConditions: '',
 };
 
 export const LOCATIONS = ['İstanbul', 'Ankara', 'İzmir', 'Diğer'] as const;

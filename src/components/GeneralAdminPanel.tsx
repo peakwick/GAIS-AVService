@@ -197,6 +197,31 @@ export function GeneralAdminPanel({ settings, onChange }: GeneralAdminPanelProps
             ))}
           </div>
         </div>
+
+        {/* Global Contract Terms */}
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+          <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+            <Globe className="w-5 h-5 mr-2 text-indigo-500" />
+            Varsayılan Sözleşme Şartları
+          </h3>
+          <p className="text-sm text-gray-500 mb-6 underline">
+            Tüm modüllerde (AV, Zebra vb.) yeni oluşturulan tekliflerde varsayılan olarak gelecek özel şartları ve koşulları buradan yönetin.
+          </p>
+          <div className="space-y-4">
+            <textarea
+              value={settings.defaultCustomConditions}
+              onChange={(e) => handleChange('defaultCustomConditions', e.target.value)}
+              rows={10}
+              placeholder="Her maddeyi yeni bir satıra yazın..."
+              className="w-full rounded-xl border-gray-300 border p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none leading-relaxed min-h-[250px]"
+            />
+            <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+              <p className="text-xs text-indigo-700 leading-relaxed font-medium">
+                <strong>İpucu:</strong> Buraya yazdığınız maddeler, her yeni teklif oluşturulduğunda otomatik olarak "Özel Şartlar ve Koşullar" bölümüne eklenecektir. Teklif bazlı özel değişiklikleri yine her bir teklifin kendi sayfasından yapabilirsiniz.
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

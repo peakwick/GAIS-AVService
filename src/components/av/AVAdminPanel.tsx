@@ -124,16 +124,6 @@ export function AVAdminPanel({ settings, generalSettings, onChange }: AVAdminPan
         >
           Hizmet Paketleri
         </button>
-        <button
-          onClick={() => setActiveTab('terms')}
-          className={`py-3 px-6 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
-            activeTab === 'terms'
-              ? 'border-indigo-500 text-indigo-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-          }`}
-        >
-          Sözleşme Şartları
-        </button>
       </div>
 
       <div className="space-y-8">
@@ -663,32 +653,6 @@ export function AVAdminPanel({ settings, generalSettings, onChange }: AVAdminPan
 
           </div>
         </div>
-        )}
-        {/* Contract Terms Management */}
-        {activeTab === 'terms' && (
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
-              <FileText className="w-5 h-5 mr-2 text-indigo-500" />
-              Sözleşme Özel Şartları (Varsayılan)
-            </h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Yeni oluşturulan tekliflerde varsayılan olarak gelecek özel şartları ve koşulları buraya ekleyin. Her bir maddeyi yeni satırda belirtin.
-            </p>
-            <div className="space-y-4">
-              <textarea
-                value={settings.defaultCustomConditions}
-                onChange={(e) => handleChange('defaultCustomConditions', e.target.value)}
-                rows={12}
-                placeholder="Her maddeyi yeni bir satıra yazın..."
-                className="w-full rounded-xl border-gray-300 border p-4 text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none leading-relaxed min-h-[300px]"
-              />
-              <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
-                <p className="text-xs text-indigo-700 leading-relaxed font-medium">
-                  <strong>İpucu:</strong> Buraya yazdığınız maddeler, her yeni teklif oluşturulduğunda otomatik olarak "Özel Şartlar ve Koşullar" bölümüne eklenecektir. Teklif bazlı değişiklikleri yine teklif hazırlar kısmından yapabilirsiniz.
-                </p>
-              </div>
-            </div>
-          </div>
         )}
       </div>
     </div>

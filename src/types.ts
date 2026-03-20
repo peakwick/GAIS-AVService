@@ -117,6 +117,7 @@ export interface GeneralSettings {
   locationMultiplier: Record<Location, number>;
   billingCycleMultiplier: Record<BillingCycle, number>;
   currency: 'TRY' | 'USD';
+  defaultCustomConditions: string;
 }
 
 export interface AdminSettings {
@@ -133,6 +134,5 @@ export interface AdminSettings {
   servicePackages: ServicePackageDef[];
   globalIncludedServices: string[];
   globalExcludedServices: string[];
-  defaultCustomConditions: string;
   catalog: CatalogItem[];
 }

@@ -373,7 +373,7 @@ export function AVServicePackages({ config, adminSettings, generalSettings, onCh
                       </div>
                     </div>
 
-                    {isSelected && service.costType === 'per_unit' && (
+                    {isSelected && service.costType !== 'free' && (
                       <div className="mt-3 flex items-center justify-between bg-white rounded-lg border border-indigo-100 p-1.5">
                         <span className="text-[10px] font-bold text-indigo-500 uppercase ml-1">Adet</span>
                         <div className="flex items-center space-x-2">

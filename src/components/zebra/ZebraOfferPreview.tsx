@@ -215,19 +215,13 @@ export function ZebraOfferPreview({ config, admin, generalSettings, onChangeConf
 
         {/* Conditions */}
         <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold text-gray-900">Şartlar ve Koşullar</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Şartlar ve Koşullar</h3>
+          <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap p-6 bg-gray-50 rounded-2xl border border-gray-100">
+            {generalSettings.defaultCustomConditions}
           </div>
-          <div className="hidden print:block text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {config.customConditions}
-          </div>
-          <div className="print:hidden">
-            <textarea
-              value={config.customConditions}
-              onChange={(e) => onChangeConfig({ ...config, customConditions: e.target.value })}
-              className="w-full h-48 rounded-xl border-gray-300 border p-4 focus:ring-2 focus:ring-indigo-500 outline-none text-sm text-gray-700 leading-relaxed"
-            />
-          </div>
+          <p className="text-[10px] text-gray-400 mt-4 italic">
+            * Bu şartlar "Genel Sistem Ayarları" altından merkezi olarak yönetilmektedir.
+          </p>
         </div>
 
       </div>

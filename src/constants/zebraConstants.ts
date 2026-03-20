@@ -14,7 +14,6 @@ export const DEFAULT_ZEBRA_CATALOG: CatalogItem[] = [
   { id: 'z_srv_4', type: 'service', name: 'Yerinde Yedek Cihaz (Konsinye)', description: 'Spare device on customer site', costType: 'monthly', costValue: 100, icon: 'tool' },
 ];
 
-export const DEFAULT_ZEBRA_CUSTOM_CONDITIONS = '1. Zebra cihazları için bakım hizmeti donanım onarımı ve yazılım desteğini kapsar.\n2. Kullanıcı kaynaklı ağır fiziksel hasarlar ek ücrete tabi olabilir.\n3. Pil değişimleri opsiyonel pakete dahildir.\n4. Standart onarım süresi 5 iş günüdür.';
 
 export const DEFAULT_ZEBRA_ADMIN_SETTINGS: AdminSettings = {
   basePreventativeVisitHours: 1.5,
@@ -64,7 +63,6 @@ export const DEFAULT_ZEBRA_ADMIN_SETTINGS: AdminSettings = {
     'Müşteri uygulama yazılımları geliştirme',
     'Altyapı (Wireless/Network) genişletme',
   ],
-  defaultCustomConditions: DEFAULT_ZEBRA_CUSTOM_CONDITIONS,
 };
 
 export const DEFAULT_ZEBRA_CONFIG_STATE: ConfigState = {
@@ -79,7 +77,7 @@ export const DEFAULT_ZEBRA_CONFIG_STATE: ConfigState = {
   selectedServiceType: 'Zebra Yıllık Bakım',
   contractStartDate: new Date().toISOString().split('T')[0],
   contractDurationMonths: 12,
-  customConditions: DEFAULT_ZEBRA_CUSTOM_CONDITIONS,
+  customConditions: '',
 };
 
 export const LOCATIONS = ['İstanbul', 'Ankara', 'İzmir', 'Diğer'] as const;
