@@ -255,10 +255,10 @@ export default function App() {
                 <div className="space-y-16 animate-in fade-in duration-500">
                   <AVConfigurator config={avConfig} adminSettings={avAdminSettings} generalSettings={generalSettings} onChange={setAvConfig} />
                   <div className="border-t border-gray-200 pt-16">
-                    <AVServicePackages config={avConfig} adminSettings={avAdminSettings} generalSettings={generalSettings} onChange={setAvConfig} onAdminChange={setAvAdminSettings} onShowBreakdown={openCalcModal} />
+                    <AVServicePackages config={avConfig} adminSettings={avAdminSettings} generalSettings={generalSettings} onChange={setAvConfig} onAdminChange={setAvAdminSettings} onGeneralChange={setGeneralSettings} onShowBreakdown={openCalcModal} />
                   </div>
                   <div className="border-t border-gray-200 pt-16">
-                    <AVOfferPreview config={avConfig} admin={avAdminSettings} generalSettings={generalSettings} onChangeConfig={setAvConfig} onAdminChange={setAvAdminSettings} onShowBreakdown={() => openCalcModal()} />
+                    <AVOfferPreview config={avConfig} admin={avAdminSettings} generalSettings={generalSettings} onChangeConfig={setAvConfig} onAdminChange={setAvAdminSettings} onGeneralChange={setGeneralSettings} onShowBreakdown={() => openCalcModal()} />
                   </div>
                 </div>
               )}
@@ -289,7 +289,7 @@ export default function App() {
 
       {/* Calculation Modals */}
       {isCalcModalOpen && modalConfig && isAVMaintenance && (
-        <AVCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={avAdminSettings} general={generalSettings} />
+        <AVCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={avAdminSettings} general={generalSettings} onGeneralChange={setGeneralSettings} />
       )}
       {isCalcModalOpen && modalConfig && isZebraMaintenance && (
         <ZebraCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={zebraAdminSettings} general={generalSettings} onGeneralChange={setGeneralSettings} />

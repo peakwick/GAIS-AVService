@@ -11,9 +11,10 @@ interface AVCalculationModalProps {
   config: ConfigState;
   admin: AdminSettings;
   general: GeneralSettings;
+  onGeneralChange?: (settings: GeneralSettings) => void;
 }
 
-export function AVCalculationModal({ isOpen, onClose, config, admin, general }: AVCalculationModalProps) {
+export function AVCalculationModal({ isOpen, onClose, config, admin, general, onGeneralChange }: AVCalculationModalProps) {
   const costs = calculateCosts(config, admin, general);
   const roomCount = config.locations.reduce((sum, loc) => sum + loc.rooms.length, 0);
   
@@ -167,17 +168,17 @@ export function AVCalculationModal({ isOpen, onClose, config, admin, general }: 
                           {addon.name} {addon.quantity > 1 && <span className="text-indigo-600 ml-1">x{addon.quantity}</span>}
                         </p>
                         <span className="text-sm font-bold text-indigo-700">
-                          <PriceDisplay amount={addon.price} adminSettings={admin} generalSettings={general} />
+                          <PriceDisplay amount={addon.price} adminSettings={admin} generalSettings={general} onGeneralChange={onGeneralChange} />
                         </span>
                       </div>
                       <p className="text-[10px] text-gray-500 mt-0.5">
-                        Maliyet: <PriceDisplay amount={addon.cost} adminSettings={admin} generalSettings={general} /> + %{admin.markupPercentage} Kar Marjı
+                        Maliyet: <PriceDisplay amount={addon.cost} adminSettings={admin} generalSettings={general} onGeneralChange={onGeneralChange} /> + %{admin.markupPercentage} Kar Marjı
                       </p>
                     </div>
                   ))}
                   <div className="pt-2 flex justify-between items-center text-sm font-bold text-indigo-900 px-1">
                     <span>Toplam Ek Hizmet Bedeli:</span>
-                    <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={admin} generalSettings={general} /></span>
+                    <span><PriceDisplay amount={costs.breakdown.addonCost} adminSettings={admin} generalSettings={general} onGeneralChange={onGeneralChange} /></span>
                   </div>
                 </div>
               </section>
@@ -214,7 +215,7 @@ export function AVCalculationModal({ isOpen, onClose, config, admin, general }: 
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Nihai Fiyat (Maliyet x Kar Marjı):</span>
                   <div className="text-right">
-                    <PriceDisplay amount={costs.annualPrice} adminSettings={admin} generalSettings={general} />
+                    <PriceDisplay amount={costs.annualPrice} adminSettings={admin} generalSettings={general} onGeneralChange={onGeneralChange} />
                     <p className="text-[10px] opacity-60 font-normal mt-0.5">Yıllık Toplam</p>
                   </div>
                 </div>
