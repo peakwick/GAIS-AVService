@@ -82,12 +82,16 @@ export function GeneralAdminPanel({ settings, onChange }: GeneralAdminPanelProps
           </div>
           
           <div className="mt-4 pt-4 border-t border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-center">
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wider font-semibold">Saatlik Maliyet</span>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Saatlik Maliyet</span>
               <span className="font-bold text-indigo-700 text-lg">₺{hourlyRate.toFixed(2)}</span>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-              <span className="block text-gray-500 mb-1 text-xs uppercase tracking-wider font-semibold">Günlük Maliyet (8 sa)</span>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Yarım Gün (4 sa)</span>
+              <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 4).toFixed(2)}</span>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100 shadow-sm transition-all hover:bg-white hover:border-indigo-100">
+              <span className="block text-gray-500 mb-1 text-[10px] uppercase tracking-wider font-bold">Tam Gün (8 sa)</span>
               <span className="font-bold text-indigo-700 text-lg">₺{(hourlyRate * 8).toFixed(2)}</span>
             </div>
           </div>

@@ -148,9 +148,10 @@ export default function App() {
                   onClick={() => {
                     setSelectedServiceType(type as ServiceType);
                     setShowSystemSettings(false);
+                    setShowGeneralSettings(false);
                   }}
                   className={`w-full flex items-center space-x-3 px-4 py-2.5 rounded-xl text-xs font-medium transition-all ${
-                    selectedServiceType === type 
+                    selectedServiceType === type && !showGeneralSettings 
                       ? 'bg-indigo-600 text-white shadow-md shadow-indigo-100' 
                       : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
@@ -202,27 +203,31 @@ export default function App() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div>
               <nav className="flex items-center space-x-2 text-xs font-medium text-gray-400 mb-2">
-                <span>Modüller</span>
+                <span>{showGeneralSettings ? 'Sistem' : 'Modüller'}</span>
                 <span>/</span>
-                <span className="text-gray-600">{selectedServiceType}</span>
+                <span className="text-gray-600">{showGeneralSettings ? 'Genel Ayarlar' : selectedServiceType}</span>
               </nav>
-              <h1 className="text-3xl font-black text-gray-900 tracking-tight">{selectedServiceType}</h1>
+              <h1 className="text-3xl font-black text-gray-900 tracking-tight">
+                {showGeneralSettings ? 'Genel Sistem Ayarları' : selectedServiceType}
+              </h1>
             </div>
             
-            <button
-              onClick={() => {
-                setShowSystemSettings(!showSystemSettings);
-                setShowGeneralSettings(false);
-              }}
-              className={`flex items-center space-x-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
-                showSystemSettings 
-                  ? 'bg-gray-900 text-white border-gray-900 shadow-lg' 
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
-              }`}
-            >
-              <Settings className={`w-4 h-4 ${showSystemSettings ? 'animate-spin-slow' : ''}`} />
-              <span>{showSystemSettings ? 'Görünüme Dön' : 'Modül Ayarları'}</span>
-            </button>
+            {!showGeneralSettings && (
+              <button
+                onClick={() => {
+                  setShowSystemSettings(!showSystemSettings);
+                  setShowGeneralSettings(false);
+                }}
+                className={`flex items-center space-x-2 px-6 py-2.5 rounded-2xl text-sm font-bold transition-all border ${
+                  showSystemSettings 
+                    ? 'bg-gray-900 text-white border-gray-900 shadow-lg' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600 shadow-sm'
+                }`}
+              >
+                <Settings className={`w-4 h-4 ${showSystemSettings ? 'animate-spin-slow' : ''}`} />
+                <span>{showSystemSettings ? 'Görünüme Dön' : 'Modül Ayarları'}</span>
+              </button>
+            )}
           </div>
 
           {showGeneralSettings ? (
@@ -260,10 +265,10 @@ export default function App() {
                 <div className="space-y-16 animate-in fade-in duration-500">
                   <ZebraConfigurator config={zebraConfig} adminSettings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraConfig} />
                   <div className="border-t border-gray-200 pt-16">
-                    <ZebraServicePackages config={zebraConfig} adminSettings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraConfig} onAdminChange={setZebraAdminSettings} onShowBreakdown={openCalcModal} />
+                    <ZebraServicePackages config={zebraConfig} adminSettings={zebraAdminSettings} generalSettings={generalSettings} onChange={setZebraConfig} onAdminChange={setZebraAdminSettings} onGeneralChange={setGeneralSettings} onShowBreakdown={openCalcModal} />
                   </div>
                   <div className="border-t border-gray-200 pt-16">
-                    <ZebraOfferPreview config={zebraConfig} admin={zebraAdminSettings} generalSettings={generalSettings} onChangeConfig={setZebraConfig} onAdminChange={setZebraAdminSettings} onShowBreakdown={() => openCalcModal()} />
+                    <ZebraOfferPreview config={zebraConfig} admin={zebraAdminSettings} generalSettings={generalSettings} onChangeConfig={setZebraConfig} onAdminChange={setZebraAdminSettings} onGeneralChange={setGeneralSettings} onShowBreakdown={() => openCalcModal()} />
                   </div>
                 </div>
               )}
@@ -286,7 +291,7 @@ export default function App() {
         <AVCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={avAdminSettings} general={generalSettings} />
       )}
       {isCalcModalOpen && modalConfig && isZebraMaintenance && (
-        <ZebraCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={zebraAdminSettings} general={generalSettings} />
+        <ZebraCalculationModal isOpen={isCalcModalOpen} onClose={() => setIsCalcModalOpen(false)} config={modalConfig} admin={zebraAdminSettings} general={generalSettings} onGeneralChange={setGeneralSettings} />
       )}
     </div>
   );

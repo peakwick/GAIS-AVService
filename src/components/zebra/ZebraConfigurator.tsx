@@ -177,20 +177,23 @@ export function ZebraConfigurator({ config, adminSettings, generalSettings, onCh
             <div className="space-y-6">
               {config.locations.map((location) => (
                 <div key={location.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                  <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-                    <div className="flex items-center space-x-4 flex-1">
-                      <MapPin className="w-5 h-5 text-gray-500" />
+                  <div className="bg-gray-100 px-4 py-3 border-b border-gray-200 flex flex-wrap items-center gap-3">
+                    <div className="flex items-center space-x-3 flex-1 min-w-[200px]">
+                      <MapPin className="w-5 h-5 text-gray-400 shrink-0" />
                       <input
                         type="text"
                         value={location.name}
                         onChange={(e) => updateLocation(location.id, 'name', e.target.value)}
-                        className="bg-transparent border-none p-0 focus:ring-0 text-base font-semibold text-gray-900 w-1/3 outline-none"
+                        className="bg-transparent border-none p-0 focus:ring-0 text-base font-bold text-gray-900 w-full outline-none placeholder:text-gray-400"
                         placeholder="Depo / Ofis Adı"
                       />
-                      <select
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                       <select
                         value={location.city}
                         onChange={(e) => updateLocation(location.id, 'city', e.target.value)}
-                        className="rounded-md border-gray-300 border p-1.5 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        className="rounded-lg border-gray-300 border py-1.5 pl-3 pr-8 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white font-medium text-gray-700"
                       >
                         {LOCATIONS.map(loc => (
                           <option key={loc} value={loc}>{loc}</option>
@@ -228,49 +231,54 @@ export function ZebraConfigurator({ config, adminSettings, generalSettings, onCh
                         <p className="text-sm text-gray-400">Bu konuma henüz cihaz eklenmedi.</p>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-3">
                         {(location.equipment || []).map((eq) => {
                           const catalogItem = equipmentCatalog.find(c => c.id === eq.catalogId);
                           return (
-                            <div key={eq.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden shadow-sm p-4 flex items-center justify-between">
+                            <div key={eq.id} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                               <div className="flex items-center space-x-3">
-                                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                <div className="p-2.5 bg-indigo-50 rounded-xl text-indigo-600 shrink-0">
                                   {getIconForType(catalogItem?.icon)}
                                 </div>
-                                <div>
-                                  <p className="text-sm font-semibold text-gray-900">{catalogItem?.name || 'Bilinmeyen Cihaz'}</p>
-                                  <p className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">{catalogItem?.description}</p>
+                                <div className="min-w-0">
+                                  <p className="text-sm font-bold text-gray-900 leading-tight truncate">{catalogItem?.name || 'Bilinmeyen Cihaz'}</p>
+                                  <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold mt-0.5 truncate">{catalogItem?.description}</p>
                                 </div>
                               </div>
                               
-                              <div className="flex items-center space-x-3">
-                                <div className="flex items-center space-x-1">
-                                  <button 
-                                    onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity - 10)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-bold"
-                                  >-10</button>
-                                  <button 
-                                    onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity - 1)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-bold"
-                                  >-1</button>
-                                  
-                                  <div className="flex flex-col items-center px-4">
-                                    <span className="text-lg font-bold text-gray-900 leading-none">{eq.quantity}</span>
-                                    <span className="text-[8px] text-gray-400 uppercase font-bold mt-1">Adet</span>
+                              <div className="flex items-center justify-between sm:justify-end space-x-4">
+                                <div className="flex items-center bg-gray-50 p-1 rounded-lg border border-gray-100">
+                                  <div className="flex items-center -space-x-px">
+                                    <button 
+                                      onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity - 10)}
+                                      className="w-7 h-7 flex items-center justify-center rounded-l-md bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 text-[10px] font-black transition-colors"
+                                    >-10</button>
+                                    <button 
+                                      onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity - 1)}
+                                      className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 text-xs font-black transition-colors border-l-0"
+                                    >-</button>
                                   </div>
-
-                                  <button 
-                                    onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity + 1)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-bold"
-                                  >+1</button>
-                                  <button 
-                                    onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity + 10)}
-                                    className="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 text-sm font-bold"
-                                  >+10</button>
+                                  
+                                  <div className="flex flex-col items-center px-3 min-w-[50px]">
+                                    <span className="text-base font-black text-indigo-700 leading-none">{eq.quantity}</span>
+                                    <span className="text-[8px] text-gray-400 uppercase font-black mt-1">ADET</span>
+                                  </div>
+                                  
+                                  <div className="flex items-center -space-x-px">
+                                    <button 
+                                      onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity + 1)}
+                                      className="w-7 h-7 flex items-center justify-center bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 text-xs font-black transition-colors border-r-0"
+                                    >+</button>
+                                    <button 
+                                      onClick={() => updateEquipmentQuantity(location.id, eq.id, eq.quantity + 10)}
+                                      className="w-7 h-7 flex items-center justify-center rounded-r-md bg-white border border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-indigo-600 text-[10px] font-black transition-colors"
+                                    >+10</button>
+                                  </div>
                                 </div>
+
                                 <button
                                   onClick={() => updateEquipmentQuantity(location.id, eq.id, 0)}
-                                  className="text-gray-300 hover:text-red-500 p-1 transition-colors"
+                                  className="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                   title="Cihazı Sil"
                                 >
                                   <Trash2 className="w-5 h-5" />

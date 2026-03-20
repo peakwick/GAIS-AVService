@@ -348,6 +348,56 @@ export function ZebraAdminPanel({ settings, generalSettings, onChange }: ZebraAd
                 </div>
               </div>
             </div>
+
+            {/* Ad-hoc Calculation Settings */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                <Globe className="w-5 h-5 mr-2 text-amber-500" />
+                Anlaşmasız (Per-Call) Teklif Ayarları
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">Bakım anlaşması olmayan müşteriler için "Karşılaştırmalı Per-Call Fiyatı" hesaplama yöntemini belirleyin.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Hesaplama Yöntemi</label>
+                  <select
+                    value={settings.adhocCalculationMethod || 'markup'}
+                    onChange={(e) => handleChange('adhocCalculationMethod', e.target.value)}
+                    className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                  >
+                    <option value="markup">Maliyet Üzerinden Yüksek Kar Marjı</option>
+                    <option value="fixed_visit">Sabit Ziyaret Başı Ücret</option>
+                  </select>
+                </div>
+
+                {settings.adhocCalculationMethod === 'fixed_visit' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Sabit Ziyaret Ücreti (₺)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={settings.fixedPerCallPrice || 0}
+                        onChange={(e) => handleChange('fixedPerCallPrice', Number(e.target.value))}
+                        className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">₺</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Ad-hoc Kar Marjı (%)</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={settings.adhocMarkupPercentage || 100}
+                        onChange={(e) => handleChange('adhocMarkupPercentage', Number(e.target.value))}
+                        className="w-full rounded-lg border-gray-300 border p-2 focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                      <span className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500">%</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

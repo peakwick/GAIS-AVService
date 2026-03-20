@@ -1,3 +1,4 @@
+import React from 'react';
 import { ConfigState, AdminSettings, ServicePackage, GeneralSettings } from '../../types';
 import { BILLING_CYCLES } from '../../constants/zebraConstants';
 import { calculatePackageCost, calculateCosts } from '../../utils/zebraCalculations';
@@ -34,6 +35,23 @@ export function ZebraServicePackages({ config, adminSettings, generalSettings, o
   }, {} as Record<string, number>);
 
   const hasEquipment = Object.keys(equipmentAggregates).length > 0;
+
+  const handleShowBreakdown = (e: React.MouseEvent, pkgId: string) => {
+    e.stopPropagation();
+    if (onShowBreakdown) {
+      const packages = adminSettings.servicePackages || [];
+      const pkg = packages.find(p => p.id === pkgId);
+      if (pkg) {
+        const tempConfig = { 
+          ...config, 
+          servicePackage: pkgId,
+          incidentVisitsPerYear: pkg.incidentVisits,
+          proactiveVisitsPerYear: pkg.proactiveVisits
+        };
+        onShowBreakdown(tempConfig);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
@@ -153,13 +171,70 @@ export function ZebraServicePackages({ config, adminSettings, generalSettings, o
                 )}
               </div>
 
-              <div className="pt-6 border-t border-gray-100">
+              <div className="pt-6 border-t border-gray-100 flex-grow">
                 <p className="text-xs text-gray-400 uppercase font-bold mb-1">Yıllık Yatırım</p>
                 <div className="flex items-baseline space-x-1">
                   <span className="text-2xl font-bold text-gray-900">
                     <PriceDisplay amount={pkgCosts.annualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
                   </span>
                   <span className="text-sm text-gray-500 font-medium">/ yıl</span>
+                </div>
+
+                {(pkgCosts.adhocAnnualPrice || 0) > pkgCosts.annualPrice && (
+                  <div className="mt-4 bg-green-50/60 border border-green-100 rounded-lg p-3 text-xs">
+                    <div className="flex justify-between items-center text-gray-500 mb-1.5">
+                      <span>Per-Call Anlaşmasız Fiyat:</span>
+                      <span className="line-through"><PriceDisplay amount={pkgCosts.adhocAnnualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                    </div>
+                    <div className="flex justify-between items-center text-green-700 font-bold mb-2 pb-2 border-b border-green-200/50">
+                      <span>Bu Paketle Kazancınız:</span>
+                       <span><PriceDisplay amount={pkgCosts.adhocAnnualPrice - pkgCosts.annualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                    </div>
+                    <p className="text-[10px] text-green-800/80 leading-snug">
+                      * Per-Call hizmetler anlık olarak sadece arızalı cihaza müdahaleyi kapsar. Bu bakım paketi ise <strong>tüm ekipman envanterinizi</strong> ve yukarıdaki <strong>ek hizmetleri</strong> garanti altına alır.
+                    </p>
+                  </div>
+                )}
+
+                {/* Price Breakdown */}
+                <div 
+                  className="mt-4 space-y-1.5 text-xs border-t border-gray-100 pt-3 group/breakdown hover:bg-gray-50/50 rounded-lg transition-colors cursor-help"
+                  onClick={(e) => handleShowBreakdown(e, pkg.id)}
+                  title="Hesaplama detaylarını görmek için tıklayın"
+                >
+                  <div className="flex justify-between text-gray-600">
+                    <span>Cihaz İşçiliği ({pkgCosts.breakdown.equipmentHours.toFixed(1)}s):</span>
+                    <span className="font-medium"><PriceDisplay amount={pkgCosts.breakdown.equipmentCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                  </div>
+                  <div className="flex justify-between text-gray-600">
+                    <span>Ziyaret / Yol ({pkgCosts.breakdown.visitHours.toFixed(1)}s):</span>
+                    <span className="font-medium"><PriceDisplay amount={pkgCosts.breakdown.visitCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                  </div>
+                  {pkgCosts.breakdown.proactiveHours > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Uzaktan Destek ({pkgCosts.breakdown.proactiveHours.toFixed(1)}s):</span>
+                      <span className="font-medium"><PriceDisplay amount={pkgCosts.breakdown.proactiveCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                    </div>
+                  )}
+
+                  {pkgCosts.breakdown.logisticsCost > 0 && (
+                    <div className="flex justify-between text-gray-600">
+                      <span>Lojistik (Yakıt/Otopark):</span>
+                      <span className="font-medium"><PriceDisplay amount={pkgCosts.breakdown.logisticsCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                    </div>
+                  )}
+
+                  {pkgCosts.breakdown.addonCost > 0 && (
+                    <div className="flex justify-between text-indigo-600 font-semibold">
+                      <span>Ek Hizmetler (Add-ons):</span>
+                      <span><PriceDisplay amount={pkgCosts.breakdown.addonCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                    </div>
+                  )}
+                  
+                  <div className="flex items-center justify-center pt-1 text-[10px] text-indigo-500 font-medium opacity-0 group-hover/breakdown:opacity-100 transition-opacity">
+                    <Calculator className="w-3 h-3 mr-1" />
+                    Hesaplama Detayları
+                  </div>
                 </div>
               </div>
             </div>
@@ -288,10 +363,56 @@ export function ZebraServicePackages({ config, adminSettings, generalSettings, o
             )}
           </div>
 
-          <div className="pt-6 border-t border-gray-100">
+          <div className="pt-6 border-t border-gray-100 flex-grow">
             <p className="text-xs text-gray-400 uppercase font-bold mb-1">Hesaplanan Yatırım</p>
-            <div className="flex items-baseline space-x-1">
-              <span className="text-2xl font-bold text-gray-900 italic opacity-80">Değişken</span>
+            <div className="flex items-baseline justify-between mb-4">
+              <div className="flex items-baseline space-x-1">
+                <span className="text-2xl font-bold text-gray-900">
+                  <PriceDisplay amount={currentCosts.annualPrice} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} />
+                </span>
+                <span className="text-sm text-gray-500 font-medium">/ yıl</span>
+              </div>
+            </div>
+
+            {/* Price Breakdown for Custom */}
+            <div 
+              className="mt-4 space-y-1.5 text-xs border-t border-gray-100 pt-3 group/breakdown hover:bg-gray-50/50 rounded-lg transition-colors cursor-help"
+              onClick={(e) => { e.stopPropagation(); onShowBreakdown?.(config); }}
+              title="Hesaplama detaylarını görmek için tıklayın"
+            >
+              <div className="flex justify-between text-gray-600">
+                <span>Cihaz İşçiliği ({currentCosts.breakdown.equipmentHours.toFixed(1)}s):</span>
+                <span className="font-medium"><PriceDisplay amount={currentCosts.breakdown.equipmentCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Ziyaret / Yol ({currentCosts.breakdown.visitHours.toFixed(1)}s):</span>
+                <span className="font-medium"><PriceDisplay amount={currentCosts.breakdown.visitCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+              </div>
+              {currentCosts.breakdown.proactiveHours > 0 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Uzaktan Destek ({currentCosts.breakdown.proactiveHours.toFixed(1)}s):</span>
+                  <span className="font-medium"><PriceDisplay amount={currentCosts.breakdown.proactiveCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                </div>
+              )}
+
+              {currentCosts.breakdown.logisticsCost > 0 && (
+                <div className="flex justify-between text-gray-600">
+                  <span>Lojistik (Yakıt/Otopark):</span>
+                  <span className="font-medium"><PriceDisplay amount={currentCosts.breakdown.logisticsCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                </div>
+              )}
+
+              {currentCosts.breakdown.addonCost > 0 && (
+                <div className="flex justify-between text-indigo-600 font-semibold">
+                  <span>Ek Hizmetler (Add-ons):</span>
+                  <span><PriceDisplay amount={currentCosts.breakdown.addonCost} adminSettings={adminSettings} generalSettings={generalSettings} onAdminChange={onAdminChange} onGeneralChange={onGeneralChange} /></span>
+                </div>
+              )}
+              
+              <div className="flex items-center justify-center pt-1 text-[10px] text-indigo-500 font-medium opacity-0 group-hover/breakdown:opacity-100 transition-opacity">
+                <Calculator className="w-3 h-3 mr-1" />
+                Hesaplama Detayları
+              </div>
             </div>
           </div>
         </div>

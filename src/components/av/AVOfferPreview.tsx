@@ -66,7 +66,7 @@ export function AVOfferPreview({ config, admin, generalSettings, onChangeConfig,
         {/* Scope Summary */}
         <div className="mb-10">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Hizmet Kapsamı</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
               <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-1">Oda Sayısı</p>
               <p className="text-2xl font-light text-gray-900">
@@ -117,18 +117,35 @@ export function AVOfferPreview({ config, admin, generalSettings, onChangeConfig,
           </div>
 
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Ekipman İşçilik Detayları</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {Array.from(new Set(config.locations.flatMap(l => l.rooms.flatMap(r => r.equipment.map(e => e.catalogId))))).map(catalogId => {
-                const item = admin.catalog?.find(c => c.id === catalogId);
-                if (!item) return null;
-                return (
-                  <div key={catalogId} className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <p className="font-medium text-sm text-gray-900">{item.name}</p>
-                    <p className="text-xs text-gray-600 mt-1">{item.description || 'Açıklama girilmemiş.'}</p>
-                  </div>
-                );
-              })}
+            <h4 className="text-sm font-semibold text-gray-900 mb-3 uppercase tracking-wider">Ekipman Envanter Özeti</h4>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Ekipman Tipi</th>
+                    <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">Toplam Adet</th>
+                    <th className="px-6 py-3 text-left text-[10px] font-bold text-gray-500 uppercase tracking-wider">Açıklama</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-100">
+                  {Array.from(new Set(config.locations.flatMap(l => l.rooms.flatMap(r => r.equipment.map(e => e.catalogId))))).map(catalogId => {
+                    const item = admin.catalog?.find(c => c.id === catalogId);
+                    const totalQty = config.locations.reduce((acc, loc) => 
+                      acc + loc.rooms.reduce((roomAcc, room) => 
+                        roomAcc + (room.equipment.filter(e => e.catalogId === catalogId).reduce((s, e) => s + e.quantity, 0))
+                      , 0)
+                    , 0);
+                    if (!item) return null;
+                    return (
+                      <tr key={catalogId}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right font-bold">{totalQty}</td>
+                        <td className="px-6 py-4 text-xs text-gray-500">{item.description || 'Hizmet dahilinde işçilik ve destek.'}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 

@@ -11,9 +11,10 @@ interface ZebraCalculationModalProps {
   config: ConfigState;
   admin: AdminSettings;
   general: GeneralSettings;
+  onGeneralChange?: (settings: GeneralSettings) => void;
 }
 
-export function ZebraCalculationModal({ isOpen, onClose, config, admin, general }: ZebraCalculationModalProps) {
+export function ZebraCalculationModal({ isOpen, onClose, config, admin, general, onGeneralChange }: ZebraCalculationModalProps) {
   const costs = calculateCosts(config, admin, general);
   const totalDevices = config.locations.reduce((acc, loc) => acc + (loc.equipment || []).reduce((sum, e) => sum + e.quantity, 0), 0);
   
@@ -161,7 +162,7 @@ export function ZebraCalculationModal({ isOpen, onClose, config, admin, general 
                 <div className="flex items-center justify-between text-lg font-bold">
                   <span>Nihai Fiyat (Maliyet x Kar Marjı):</span>
                   <div className="text-right">
-                    <PriceDisplay amount={costs.annualPrice} adminSettings={admin} generalSettings={general} />
+                    <PriceDisplay amount={costs.annualPrice} adminSettings={admin} generalSettings={general} onGeneralChange={onGeneralChange} />
                     <p className="text-[10px] opacity-60 font-normal mt-0.5">Yıllık Toplam</p>
                   </div>
                 </div>
